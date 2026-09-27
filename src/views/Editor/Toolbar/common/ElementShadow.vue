@@ -11,33 +11,36 @@
         <div style="width: 40%;">HorizontalSombra：</div>
         <Slider 
           style="width: 60%;"
-          :min="-20" 
-          :max="20" 
-          :step="1" 
-          :value="shadow.h" 
-          @update:value="value => updateShadow({ h: value as number })"
+          unit="mm"
+          :min="PX_TO_MM(-20)" 
+          :max="PX_TO_MM(20)" 
+          :step="PX_TO_MM(1)" 
+          :value="PX_TO_MM(shadow.h)" 
+          @update:value="value => updateShadow({ h: MM_TO_PX(value as number) })"
         />
       </div>
       <div class="row">
         <div style="width: 40%;">VerticalSombra：</div>
         <Slider
           style="width: 60%;"
-          :min="-20"
-          :max="20"
-          :step="1"
-          :value="shadow.v"
-          @update:value="value => updateShadow({ v: value as number })"
+          unit="mm"
+          :min="PX_TO_MM(-20)"
+          :max="PX_TO_MM(20)"
+          :step="PX_TO_MM(1)"
+          :value="PX_TO_MM(shadow.v)"
+          @update:value="value => updateShadow({ v: MM_TO_PX(value as number) })"
         />
       </div>
       <div class="row">
         <div style="width: 40%;">Distância do desfoque:</div>
         <Slider
           style="width: 60%;"
-          :min="1"
-          :max="30"
-          :step="1"
-          :value="shadow.blur"
-          @update:value="value => updateShadow({ blur: value as number })"
+          unit="mm"
+          :min="PX_TO_MM(1)"
+          :max="PX_TO_MM(30)"
+          :step="PX_TO_MM(1)"
+          :value="PX_TO_MM(shadow.blur)"
+          @update:value="value => updateShadow({ blur: MM_TO_PX(value as number) })"
         />
       </div>
       <div class="row">
@@ -62,6 +65,7 @@ import { storeToRefs } from 'pinia'
 import { useMainStore, useSlidesStore } from '@/store'
 import type { PPTElementShadow } from '@/types/slides'
 import useHistorySnapshot from '@/hooks/useHistorySnapshot'
+import { MM_TO_PX, PX_TO_MM } from '@/configs/units'
 
 import ColorButton from '@/components/ColorButton.vue'
 import ColorPicker from '@/components/ColorPicker/index.vue'

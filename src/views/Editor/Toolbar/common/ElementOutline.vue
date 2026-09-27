@@ -38,10 +38,13 @@
       <div class="row">
         <div style="width: 40%;">Espessura da borda:</div>
         <NumberInput 
-          :value="outline.width || 0" 
-          @update:value="value => updateOutline({ width: value })" 
+          :step="PX_TO_MM(1)"
+          :value="PX_TO_MM(outline.width || 0)" 
+          @update:value="value => updateOutline({ width: MM_TO_PX(value) })" 
           style="width: 60%;" 
-        />
+        >
+          <template #suffix>mm</template>
+        </NumberInput>
       </div>
     </template>
   </div>
@@ -53,6 +56,7 @@ import { storeToRefs } from 'pinia'
 import { useMainStore, useSlidesStore } from '@/store'
 import type { LineStyleType, PPTElementOutline } from '@/types/slides'
 import useHistorySnapshot from '@/hooks/useHistorySnapshot'
+import { MM_TO_PX, PX_TO_MM } from '@/configs/units'
 
 import SVGLine from '../common/SVGLine.vue'
 import ColorButton from '@/components/ColorButton.vue'

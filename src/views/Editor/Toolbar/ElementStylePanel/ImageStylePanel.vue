@@ -44,10 +44,13 @@
     <div class="row">
       <div style="width: 40%;">Raio do canto:</div>
       <NumberInput 
-        :value="handleImageElement.radius || 0" 
-        @update:value="value => updateImage({ radius: value })" 
+        :step="PX_TO_MM(1)"
+        :value="PX_TO_MM(handleImageElement.radius || 0)" 
+        @update:value="value => updateImage({ radius: MM_TO_PX(value) })" 
         style="width: 60%;" 
-      />
+      >
+        <template #suffix>mm</template>
+      </NumberInput>
     </div>
 
     <Divider />
@@ -76,6 +79,7 @@ import type { PPTImageElement, SlideBackground } from '@/types/slides'
 import { CLIPPATHS } from '@/configs/imageClip'
 import useHistorySnapshot from '@/hooks/useHistorySnapshot'
 import useImageHandler from '@/hooks/useImageHandler'
+import { MM_TO_PX, PX_TO_MM } from '@/configs/units'
 
 import ElementOutline from '../common/ElementOutline.vue'
 import ElementShadow from '../common/ElementShadow.vue'

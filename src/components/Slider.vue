@@ -3,12 +3,12 @@
     <div class="bar">
       <template v-if="!range">
         <div class="track" :style="{ width: `${percentage}%` }"></div>
-        <div class="thumb" :style="{ left: `${percentage}%` }" :data-tooltip="tooltipValue"></div>
+        <div class="thumb" :style="{ left: `${percentage}%` }" :data-tooltip="formatTooltip(tooltipValue)"></div>
       </template>
       <template v-else>
         <div class="track" :style="{ width: `${end - start}%`, left: `${start}%` }"></div>
-        <div class="thumb" :style="{ left: `${start}%` }" :data-tooltip="tooltipRangeStartValue"></div>
-        <div class="thumb" :style="{ left: `${end}%` }" :data-tooltip="tooltipRangeEndValue"></div>
+        <div class="thumb" :style="{ left: `${start}%` }" :data-tooltip="formatTooltip(tooltipRangeStartValue)"></div>
+        <div class="thumb" :style="{ left: `${end}%` }" :data-tooltip="formatTooltip(tooltipRangeEndValue)"></div>
       </template>
     </div>
   </div>
@@ -29,12 +29,14 @@ const props = withDefaults(defineProps<{
   max?: number
   step?: number
   range?: boolean
+  unit?: string
 }>(), {
   disabled: false,
   min: 0,
   max: 100,
   step: 1,
   range: false,
+  unit: '',
 })
 
 const emit = defineEmits<{
@@ -68,6 +70,10 @@ const getNewValue = (percentage: number) => {
     }
   }
   return NP.plus(diff, props.min)
+}
+
+const formatTooltip = (value: number) => {
+  return props.unit ? `${value} ${props.unit}` : `${value}`
 }
 
 const tooltipValue = computed(() => {

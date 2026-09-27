@@ -54,7 +54,7 @@
     </div>
 
     <div class="btns">
-      <Button @click="emit('close')" style="margin-right: 10px;">Cancelar</Button>
+      <Button @click="emit('cancel')" style="margin-right: 10px;">Cancelar</Button>
       <Button type="primary" @click="insert()">Inserir forma</Button>
     </div>
   </div>
@@ -74,8 +74,13 @@ import NumberInput from '@/components/NumberInput.vue'
 import Button from '@/components/Button.vue'
 import Divider from '@/components/Divider.vue'
 
+const props = defineProps<{
+  shape?: ShapePoolItem
+}>()
+
 const emit = defineEmits<{
   (event: 'close'): void
+  (event: 'cancel'): void
 }>()
 
 const mainStore = useMainStore()
@@ -86,7 +91,7 @@ const MIN_MM = 5
 const MAX_MM = 450
 
 const firstShape = SHAPE_LIST[0].children[0]
-const selectedShape = ref<ShapePoolItem>(firstShape)
+const selectedShape = ref<ShapePoolItem>(props.shape || firstShape)
 const pickerVisible = ref(false)
 
 /** padrão: 50 × 50 mm (quadrado-ish) */

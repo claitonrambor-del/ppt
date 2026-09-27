@@ -10,6 +10,7 @@
       </button>
     </Popover>
     <BorderPanel />
+    <SizeControl :elementInfo="elementInfo" />
     <template v-if="showTextStyleControls">
       <div class="divider"></div>
       <TextStyleControls />
@@ -25,6 +26,7 @@ import type { PPTShapeElement } from '@/types/slides'
 import useHistorySnapshot from '@/hooks/useHistorySnapshot'
 
 import BorderPanel from './BorderPanel.vue'
+import SizeControl from './SizeControl.vue'
 import TextStyleControls from './TextStyleControls.vue'
 import Popover from '@/components/Popover.vue'
 import ColorPicker from '@/components/ColorPicker/index.vue'

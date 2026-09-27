@@ -76,30 +76,6 @@
       </div>
     </div>
 
-    <div class="right">
-      <div class="group-menu-item">
-        <div class="menu-item" v-tooltip="'Apresentar slides (F5)'" @click="enterScreening()">
-          <i-icon-park-outline:ppt class="icon" />
-        </div>
-        <Popover trigger="click" center>
-          <template #content>
-            <PopoverMenuItem class="popover-menu-item" @click="enterScreeningFromStart()"><i-icon-park-outline:slide-two class="icon" /> Do início</PopoverMenuItem>
-            <PopoverMenuItem class="popover-menu-item" @click="enterScreening()"><i-icon-park-outline:ppt class="icon" /> Do slide atual</PopoverMenuItem>
-          </template>
-          <div class="arrow-btn"><i-icon-park-outline:down class="arrow" /></div>
-        </Popover>
-      </div>
-      <div class="menu-item" v-tooltip="'Gerar PPT com IA'" @click="openAIPPTDialog(); mainMenuVisible = false">
-        <span class="text ai">AI</span>
-      </div>
-      <div class="menu-item" v-tooltip="'Exportar'" @click="setDialogForExport('pptx')">
-        <i-icon-park-outline:download class="icon" />
-      </div>
-      <a class="github-link" v-tooltip="'Copyright © 2020-PRESENT pipipi-pikachu'" href="https://github.com/pipipi-pikachu/PPTist" target="_blank">
-        <div class="menu-item"><i-icon-park-outline:github class="icon" /></div>
-      </a>
-    </div>
-
     <Drawer
       :width="320"
       v-model:visible="hotkeyDrawerVisible"
@@ -130,7 +106,6 @@
 import { nextTick, ref, useTemplateRef } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useMainStore, useSlidesStore } from '@/store'
-import useScreening from '@/hooks/useScreening'
 import useImport from '@/hooks/useImport'
 import useSlideHandler from '@/hooks/useSlideHandler'
 import type { DialogForExportTypes } from '@/types/export'
@@ -149,7 +124,6 @@ import Divider from '@/components/Divider.vue'
 const mainStore = useMainStore()
 const slidesStore = useSlidesStore()
 const { title } = storeToRefs(slidesStore)
-const { enterScreening, enterScreeningFromStart } = useScreening()
 const { importSpecificFile, importPPTXFile, importJSON, exporting } = useImport()
 const { resetSlides } = useSlideHandler()
 
@@ -211,7 +185,7 @@ const openAIPPTDialog = () => {
   justify-content: space-between;
   padding: 0 5px;
 }
-.left, .right {
+.left {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -229,17 +203,6 @@ const openAIPPTDialog = () => {
   .icon {
     font-size: 18px;
     color: #666;
-  }
-  .text {
-    width: 18px;
-    text-align: center;
-    font-size: 17px;
-  }
-  .ai {
-    background: linear-gradient(270deg, #d897fd, #33bcfc);
-    background-clip: text;
-    color: transparent;
-    font-weight: 700;
   }
 
   &:hover {
@@ -341,27 +304,6 @@ const openAIPPTDialog = () => {
   }
 }
 
-.group-menu-item {
-  height: 30px;
-  display: flex;
-  margin: 0 8px;
-  padding: 0 2px;
-  border-radius: $borderRadius;
-
-  &:hover {
-    background-color: #f1f1f1;
-  }
-
-  .menu-item {
-    padding: 0 3px;
-  }
-  .arrow-btn {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-  }
-}
 .title {
   height: 30px;
   margin-left: 2px;
@@ -392,9 +334,5 @@ const openAIPPTDialog = () => {
       background-color: #f1f1f1;
     }
   }
-}
-.github-link {
-  display: inline-block;
-  height: 30px;
 }
 </style>

@@ -125,7 +125,7 @@
           :value="paragraphSpace || 0"
           @update:value="value => updateTextProps({ paragraphSpace: value as number })"
           :options="paragraphSpaceOptions.map(item => ({
-            label: item + 'px', value: item
+            label: PX_TO_MM(item) + 'mm', value: item
           }))"
         >
           <template #icon>
@@ -139,7 +139,7 @@
           :value="wordSpace || 0"
           @update:value="value => updateTextProps({ wordSpace: value as number })"
           :options="wordSpaceOptions.map(item => ({
-            label: item + 'px', value: item
+            label: PX_TO_MM(item) + 'mm', value: item
           }))"
         >
           <template #icon>
@@ -153,9 +153,10 @@
       <div class="row">
         <NumberInput
           :min="0"
-          :max="50"
-          :value="inset[0]"
-          @update:value="value => updateInset(0, value)"
+          :max="PX_TO_MM(50)"
+          :step="PX_TO_MM(1)"
+          :value="PX_TO_MM(inset[0])"
+          @update:value="value => updateInset(0, MM_TO_PX(value))"
           style="width: 45%;"
         >
           <template #prefix>Margem superior:</template>
@@ -163,9 +164,10 @@
         <div style="width: 10%;"></div>
         <NumberInput
           :min="0"
-          :max="50"
-          :value="inset[2]"
-          @update:value="value => updateInset(2, value)"
+          :max="PX_TO_MM(50)"
+          :step="PX_TO_MM(1)"
+          :value="PX_TO_MM(inset[2])"
+          @update:value="value => updateInset(2, MM_TO_PX(value))"
           style="width: 45%;"
         >
           <template #prefix>Margem inferior:</template>
@@ -174,9 +176,10 @@
       <div class="row">
         <NumberInput
           :min="0"
-          :max="50"
-          :value="inset[3]"
-          @update:value="value => updateInset(3, value)"
+          :max="PX_TO_MM(50)"
+          :step="PX_TO_MM(1)"
+          :value="PX_TO_MM(inset[3])"
+          @update:value="value => updateInset(3, MM_TO_PX(value))"
           style="width: 45%;"
         >
           <template #prefix>Margem esquerda:</template>
@@ -184,9 +187,10 @@
         <div style="width: 10%;"></div>
         <NumberInput
           :min="0"
-          :max="50"
-          :value="inset[1]"
-          @update:value="value => updateInset(1, value)"
+          :max="PX_TO_MM(50)"
+          :step="PX_TO_MM(1)"
+          :value="PX_TO_MM(inset[1])"
+          @update:value="value => updateInset(1, MM_TO_PX(value))"
           style="width: 45%;"
         >
           <template #prefix>Margem direita:</template>
@@ -238,6 +242,7 @@ import { getImageDataURL } from '@/utils/image'
 import emitter, { EmitterEvents } from '@/utils/emitter'
 import useHistorySnapshot from '@/hooks/useHistorySnapshot'
 import useShapeFormatPainter from '@/hooks/useShapeFormatPainter'
+import { MM_TO_PX, PX_TO_MM } from '@/configs/units'
 
 import ElementOpacity from '../common/ElementOpacity.vue'
 import ElementOutline from '../common/ElementOutline.vue'

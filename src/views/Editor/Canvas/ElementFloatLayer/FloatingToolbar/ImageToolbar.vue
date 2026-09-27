@@ -10,6 +10,7 @@
         <span>Substituir</span>
       </button>
     </FileInput>
+    <SizeControl :elementInfo="elementInfo" />
   </div>
 </template>
 
@@ -19,6 +20,7 @@ import { useMainStore } from '@/store'
 import type { PPTImageElement } from '@/types/slides'
 import useImageHandler from '@/hooks/useImageHandler'
 
+import SizeControl from './SizeControl.vue'
 import FileInput from '@/components/FileInput.vue'
 
 defineProps<{

@@ -1,10 +1,10 @@
 <template>
   <div class="slide-design-panel">
     <div class="title">Fundo</div>
-    <div class="row">
-      <Select 
-        style="flex: 1;" 
-        :value="background.type" 
+
+    <div class="field">
+      <Select
+        :value="background.type"
         @update:value="value => updateBackgroundType(value as 'gradient' | 'image' | 'solid')"
         :options="[
           { label: 'Preenchimento sólido', value: 'solid' },
@@ -12,9 +12,10 @@
           { label: 'Preenchimento gradiente', value: 'gradient' },
         ]"
       />
-      <div style="width: 10px;"></div>
+    </div>
 
-      <Popover trigger="click" v-if="background.type === 'solid'" style="flex: 1;">
+    <div class="field" v-if="background.type === 'solid'">
+      <Popover trigger="click">
         <template #content>
           <ColorPicker
             :modelValue="background.color"
@@ -23,24 +24,24 @@
         </template>
         <ColorButton :color="background.color || '#fff'" />
       </Popover>
+    </div>
 
-      <Select 
-        style="flex: 1;" 
-        :value="background.image?.size || 'cover'" 
+    <div class="field" v-else-if="background.type === 'image'">
+      <Select
+        :value="background.image?.size || 'cover'"
         @update:value="value => updateImageBackground({ size: value as SlideBackgroundImageSize })"
-        v-else-if="background.type === 'image'"
         :options="[
           { label: 'Ajustar', value: 'contain' },
           { label: 'Lado a lado', value: 'repeat' },
           { label: 'Preencher', value: 'cover' },
         ]"
       />
+    </div>
 
-      <Select 
-        style="flex: 1;" 
-        :value="background.gradient?.type || ''" 
+    <div class="field" v-else>
+      <Select
+        :value="background.gradient?.type || ''"
         @update:value="value => updateGradientBackground({ type: value as GradientType })"
-        v-else
         :options="[
           { label: 'Gradiente linear', value: 'linear' },
           { label: 'Gradiente radial', value: 'radial' },
@@ -67,9 +68,9 @@
           @update:index="index => currentGradientIndex = index"
         />
       </div>
-      <div class="row">
-        <div style="width: 40%;">Cor atual:</div>
-        <Popover trigger="click" style="width: 60%;">
+      <div class="field">
+        <div class="field-label">Cor atual:</div>
+        <Popover trigger="click">
           <template #content>
             <ColorPicker
               :modelValue="background.gradient!.colors[currentGradientIndex].color"
@@ -79,29 +80,27 @@
           <ColorButton :color="background.gradient!.colors[currentGradientIndex].color" />
         </Popover>
       </div>
-      <div class="row" v-if="background.gradient?.type === 'linear'">
-        <div style="width: 40%;">Ângulo do gradiente:</div>
+      <div class="field" v-if="background.gradient?.type === 'linear'">
+        <div class="field-label">Ângulo do gradiente:</div>
         <Slider
           :min="0"
           :max="360"
           :step="15"
           :value="background.gradient.rotate || 0"
           @update:value="value => updateGradientBackground({ rotate: value as number })"
-          style="width: 60%;"
         />
       </div>
     </div>
 
-    <div class="row">
-      <Button style="flex: 1;" @click="applyBackgroundAllSlide()"><i-icon-park-outline:check /> Aplicar fundo a todos</Button>
+    <div class="field">
+      <Button class="block-btn" @click="applyBackgroundAllSlide()"><i-icon-park-outline:check /> Aplicar fundo a todos</Button>
     </div>
 
     <Divider />
 
-    <div class="row">
-      <div style="width: 40%;">Folha:</div>
+    <div class="field">
+      <div class="field-label">Folha:</div>
       <Select
-        style="flex: 1;"
         defaultLabel="—"
         :value="paperSize"
         @update:value="value => updatePaperSize(value as PaperSize)"
@@ -109,10 +108,9 @@
       />
     </div>
 
-    <div class="row">
-      <div style="width: 40%;">Orientação:</div>
+    <div class="field">
+      <div class="field-label">Orientação:</div>
       <Select
-        style="flex: 1;"
         defaultLabel="—"
         :value="paperOrientation"
         @update:value="value => updatePaperOrientation(value as PaperOrientation)"
@@ -124,16 +122,16 @@
       <div class="canvas-size">Tamanho do canvas: {{ Math.round(PX_TO_MM(viewportSize)) }} × {{ Math.round(PX_TO_MM(viewportSize * viewportRatio)) }} mm</div>
     </div>
 
-    <div class="row">
-      <Button style="flex: 1;" @click="customViewportSizeVisible = true"><i-icon-park-outline:proportional-scaling /> Tamanho personalizado</Button>
+    <div class="field">
+      <Button class="block-btn" @click="customViewportSizeVisible = true"><i-icon-park-outline:proportional-scaling /> Tamanho personalizado</Button>
     </div>
 
     <Divider />
 
     <div class="title">Trabalho padrão (margens)</div>
-    <div class="row">
-      <div style="width: 40%;">Margem:</div>
-      <Button style="flex: 1;" @click="marginsSettingVisible = true"><i-icon-park-outline:adjustment /> Configurar margens</Button>
+    <div class="field">
+      <div class="field-label">Margem:</div>
+      <Button class="block-btn" @click="marginsSettingVisible = true"><i-icon-park-outline:adjustment /> Configurar margens</Button>
     </div>
     <div class="tip-text">Padrão: 7mm por lado (escala proporcionalmente ao trocar a folha ou o tamanho do canvas)</div>
 
@@ -147,10 +145,9 @@
         <i-icon-park-outline:right v-else />
       </span>
     </div>
-    <div class="row">
-      <div style="width: 40%;">Fonte:</div>
+    <div class="field">
+      <div class="field-label">Fonte:</div>
       <Select
-        style="width: 60%;"
         :value="theme.fontName"
         search
         searchLabel="Buscar fonte"
@@ -159,9 +156,9 @@
         :options="FONTS"
       />
     </div>
-    <div class="row">
-      <div style="width: 40%;">FonteCor:</div>
-      <Popover trigger="click" style="width: 60%;">
+    <div class="field">
+      <div class="field-label">FonteCor:</div>
+      <Popover trigger="click">
         <template #content>
           <ColorPicker
             :modelValue="theme.fontColor"
@@ -171,9 +168,9 @@
         <ColorButton :color="theme.fontColor" />
       </Popover>
     </div>
-    <div class="row">
-      <div style="width: 40%;">Cor de fundo:</div>
-      <Popover trigger="click" style="width: 60%;">
+    <div class="field">
+      <div class="field-label">Cor de fundo:</div>
+      <Popover trigger="click">
         <template #content>
           <ColorPicker
             :modelValue="theme.backgroundColor"
@@ -183,15 +180,15 @@
         <ColorButton :color="theme.backgroundColor" />
       </Popover>
     </div>
-    <div class="row">
-      <div style="width: 40%;">Cor do tema:</div>
-      <ColorListButton style="width: 60%;" :colors="theme.themeColors" @click="themeColorsSettingVisible = true" />
+    <div class="field">
+      <div class="field-label">Cor do tema:</div>
+      <ColorListButton :colors="theme.themeColors" @click="themeColorsSettingVisible = true" />
     </div>
-    
+
     <template v-if="moreThemeConfigsVisible">
-      <div class="row">
-        <div style="width: 40%;">Estilo da borda:</div>
-        <SelectCustom style="width: 60%;">
+      <div class="field">
+        <div class="field-label">Estilo da borda:</div>
+        <SelectCustom>
           <template #options>
             <div class="option" v-for="item in lineStyleOptions" :key="item" @click="updateTheme({ outline: { ...theme.outline, style: item } })">
               <SVGLine :type="item" />
@@ -202,9 +199,9 @@
           </template>
         </SelectCustom>
       </div>
-      <div class="row">
-        <div style="width: 40%;">Cor da borda:</div>
-        <Popover trigger="click" style="width: 60%;">
+      <div class="field">
+        <div class="field-label">Cor da borda:</div>
+        <Popover trigger="click">
           <template #content>
             <ColorPicker
               :modelValue="theme.outline.color"
@@ -214,50 +211,52 @@
           <ColorButton :color="theme.outline.color || '#000'" />
         </Popover>
       </div>
-      <div class="row">
-        <div style="width: 40%;">Espessura da borda:</div>
-        <NumberInput 
-          :value="theme.outline.width || 0" 
-          @update:value="value => updateTheme({ outline: { ...theme.outline, width: value } })" 
-          style="width: 60%;" 
-        />
+      <div class="field">
+        <div class="field-label">Espessura da borda:</div>
+        <NumberInput
+          :step="PX_TO_MM(1)"
+          :value="PX_TO_MM(theme.outline.width || 0)"
+          @update:value="value => updateTheme({ outline: { ...theme.outline, width: MM_TO_PX(value) } })"
+        >
+          <template #suffix>mm</template>
+        </NumberInput>
       </div>
-      <div class="row" style="height: 30px;">
-        <div style="width: 40%;">HorizontalSombra：</div>
-        <Slider 
-          style="width: 60%;"
-          :min="-20" 
-          :max="20" 
-          :step="1" 
-          :value="theme.shadow.h" 
-          @update:value="value => updateTheme({ shadow: { ...theme.shadow, h: value as number } })"
-        />
-      </div>
-      <div class="row" style="height: 30px;">
-        <div style="width: 40%;">VerticalSombra：</div>
+      <div class="field">
+        <div class="field-label">HorizontalSombra：</div>
         <Slider
-          style="width: 60%;"
-          :min="-20"
-          :max="20"
-          :step="1"
-          :value="theme.shadow.v"
-          @update:value="value => updateTheme({ shadow: { ...theme.shadow, v: value as number } })"
+          unit="mm"
+          :min="PX_TO_MM(-20)"
+          :max="PX_TO_MM(20)"
+          :step="PX_TO_MM(1)"
+          :value="PX_TO_MM(theme.shadow.h)"
+          @update:value="value => updateTheme({ shadow: { ...theme.shadow, h: MM_TO_PX(value as number) } })"
         />
       </div>
-      <div class="row" style="height: 30px;">
-        <div style="width: 40%;">Distância do desfoque:</div>
+      <div class="field">
+        <div class="field-label">VerticalSombra：</div>
         <Slider
-          style="width: 60%;"
-          :min="1"
-          :max="30"
-          :step="1"
-          :value="theme.shadow.blur"
-          @update:value="value => updateTheme({ shadow: { ...theme.shadow, blur: value as number } })"
+          unit="mm"
+          :min="PX_TO_MM(-20)"
+          :max="PX_TO_MM(20)"
+          :step="PX_TO_MM(1)"
+          :value="PX_TO_MM(theme.shadow.v)"
+          @update:value="value => updateTheme({ shadow: { ...theme.shadow, v: MM_TO_PX(value as number) } })"
         />
       </div>
-      <div class="row">
-        <div style="width: 40%;">SombraCor:</div>
-        <Popover trigger="click" style="width: 60%;">
+      <div class="field">
+        <div class="field-label">Distância do desfoque:</div>
+        <Slider
+          unit="mm"
+          :min="PX_TO_MM(1)"
+          :max="PX_TO_MM(30)"
+          :step="PX_TO_MM(1)"
+          :value="PX_TO_MM(theme.shadow.blur)"
+          @update:value="value => updateTheme({ shadow: { ...theme.shadow, blur: MM_TO_PX(value as number) } })"
+        />
+      </div>
+      <div class="field">
+        <div class="field-label">SombraCor:</div>
+        <Popover trigger="click">
           <template #content>
             <ColorPicker
               :modelValue="theme.shadow.color"
@@ -269,25 +268,19 @@
       </div>
     </template>
 
-    <div class="row">
-      <Button style="flex: 1;" @click="applyThemeToAllSlides(moreThemeConfigsVisible)"><i-icon-park-outline:check /> Aplicar tema a todos</Button>
-    </div>
-
-    <div class="row">
-      <Button style="flex: 1;" @click="applyFontToAllSlides(theme.fontName)"><i-icon-park-outline:check /> Fonte global unificada</Button>
-    </div>
-
-    <div class="row">
-      <Button style="flex: 1;" @click="themeStylesExtractVisible = true"><i-icon-park-outline:platte /> Extrair tema dos slides</Button>
+    <div class="stack">
+      <Button class="block-btn" @click="applyThemeToAllSlides(moreThemeConfigsVisible)"><i-icon-park-outline:check /> Aplicar tema a todos</Button>
+      <Button class="block-btn" @click="applyFontToAllSlides(theme.fontName)"><i-icon-park-outline:check /> Fonte global unificada</Button>
+      <Button class="block-btn" @click="themeStylesExtractVisible = true"><i-icon-park-outline:platte /> Extrair tema dos slides</Button>
     </div>
 
     <Divider />
 
     <div class="title">Temas predefinidos</div>
     <div class="theme-list">
-      <div 
-        class="theme-item" 
-        v-for="(item, index) in PRESET_THEMES" 
+      <div
+        class="theme-item"
+        v-for="(item, index) in PRESET_THEMES"
         :key="index"
         :style="{
           backgroundColor: item.background,
@@ -310,7 +303,7 @@
   </div>
 
   <Modal
-    v-model:visible="themeStylesExtractVisible" 
+    v-model:visible="themeStylesExtractVisible"
     :width="320"
     @closed="themeStylesExtractVisible = false"
   >
@@ -318,7 +311,7 @@
   </Modal>
 
   <Modal
-    v-model:visible="themeColorsSettingVisible" 
+    v-model:visible="themeColorsSettingVisible"
     :width="310"
     @closed="themeColorsSettingVisible = false"
   >
@@ -326,7 +319,7 @@
   </Modal>
 
   <Modal
-    v-model:visible="customViewportSizeVisible" 
+    v-model:visible="customViewportSizeVisible"
     :width="300"
     @closed="customViewportSizeVisible = false"
   >
@@ -334,7 +327,7 @@
   </Modal>
 
   <Modal
-    v-model:visible="marginsSettingVisible" 
+    v-model:visible="marginsSettingVisible"
     :width="320"
     @closed="marginsSettingVisible = false"
   >
@@ -371,7 +364,7 @@ import useHistorySnapshot from '@/hooks/useHistorySnapshot'
 import useSlideTheme from '@/hooks/useSlideTheme'
 import { getImageDataURL } from '@/utils/image'
 import { toFixed } from '@/utils/common'
-import { PX_TO_MM } from '@/configs/units'
+import { MM_TO_PX, PX_TO_MM } from '@/configs/units'
 import { resolveMargins, getScaledMarginProps } from '@/modules/margins'
 
 import ThemeStylesExtract from './ThemeStylesExtract.vue'
@@ -589,22 +582,97 @@ const updatePaperOrientation = (orientation: PaperOrientation) => {
 </script>
 
 <style lang="scss" scoped>
+/*
+  Painel de design — layout baseado em neurodesign / neurociência visual:
+
+  1. CHUNKING (Gestalt): cada controle vira um bloco "rótulo em cima +
+     alvo embaixo". O rótulo fica sempre mais perto do próprio controle do
+     que de qualquer outro → elimina ambiguidade de leitura.
+  2. FITT'S LAW: alvos de largura total (selects, cores, botões) => menos
+     erro de clique e varredura ocular em linha única (sem saltos 40%/60%).
+  3. SEM SOBREPOSIÇÃO: `white-space: nowrap` + alvo full-width impedem que
+     o texto quebre para uma segunda linha e invada o bloco vizinho.
+  4. HIERARQUIA: título de seção com marcador (âncora pré-atentiva),
+     rótulos em nível secundário e texto de apoio com contraste WCAG AA.
+  5. RITMO ESPACIAL: base de 4–10px entre pares e 24px entre grupos →
+     a distância sinaliza pertencimento sem esforço deliberado.
+*/
 .slide-design-panel {
   user-select: none;
 }
+
+/* linha simples (elemento full-width, sem rótulo) */
 .row {
   width: 100%;
   display: flex;
   align-items: center;
+  gap: 8px;
   margin-bottom: 10px;
 }
+
+/* bloco rótulo + controle: unidade mínima de decisão do painel */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+  margin-bottom: 10px;
+}
+.field-label {
+  font-size: 12px;
+  line-height: 1.3;
+  color: $textSecondaryColor;
+}
+
+/* botão de ação: largura total, nunca quebra a linha */
+.block-btn {
+  box-sizing: border-box;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+/* ações do tema: empilhadas, mesmo tamanho e alinhamento */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+/* cabeçalho de seção: marcador de cor = ponto de entrada visual do grupo */
 .title {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 10px;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: $textColor;
+  letter-spacing: .2px;
+  padding-left: 8px;
+  border-left: 3px solid $themeColor;
+  margin: 2px 0 12px;
 
   .more {
+    display: inline-flex;
+    align-items: center;
     cursor: pointer;
+    font-size: 12px;
+    font-weight: 400;
+    color: $textSecondaryColor;
+    padding: 2px 6px;
+    border-radius: $borderRadiusSm;
+    transition: color $transitionDelayFast $easeOutCubic,
+                background-color $transitionDelayFast $easeOutCubic;
+
+    &:hover {
+      color: $themeColor;
+      background-color: rgba($color: $themeColor, $alpha: .07);
+    }
 
     .text {
       font-size: 12px;
@@ -612,6 +680,7 @@ const updatePaperOrientation = (orientation: PaperOrientation) => {
     }
   }
 }
+
 .background-image-wrapper {
   margin-bottom: 10px;
 }
@@ -640,16 +709,26 @@ const updatePaperOrientation = (orientation: PaperOrientation) => {
     cursor: pointer;
   }
 }
+
+/* leitura de estado (dado, não ação): superfície suave + números tabulares */
 .canvas-size {
   width: 100%;
-  color: #888;
+  padding: 7px 8px;
+  background-color: $lightGray;
+  border: 1px solid $borderColor;
+  border-radius: $borderRadiusMd;
+  color: $textSecondaryColor;
   font-size: 12px;
   text-align: center;
+  font-variant-numeric: tabular-nums;
 }
+
+/* texto de apoio: contraste AA (substitui #999) e entrelinha confortável */
 .tip-text {
   font-size: 12px;
-  color: #999;
-  margin: -6px 0 8px;
+  line-height: 1.5;
+  color: $textSecondaryColor;
+  margin: 0 0 4px;
 }
 
 .theme-list {
@@ -659,9 +738,17 @@ const updatePaperOrientation = (orientation: PaperOrientation) => {
   @include flex-grid-layout-children(2, 48%);
 
   padding-bottom: 27%;
-  border-radius: $borderRadius;
+  border-radius: $borderRadiusMd;
   position: relative;
   cursor: pointer;
+  /* elevação no hover: profundidade = "este item responde ao seu gesto" */
+  transition: transform $transitionDelay $easeOutCubic,
+              box-shadow $transitionDelay $easeOutCubic;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $boxShadow;
+  }
 
   .theme-item-content {
     @include absolute-0();
@@ -671,7 +758,8 @@ const updatePaperOrientation = (orientation: PaperOrientation) => {
     justify-content: center;
     padding: 8px;
     border: 1px solid $borderColor;
-    border-radius: $borderRadius;
+    border-radius: $borderRadiusMd;
+    overflow: hidden;
   }
 
   .text {

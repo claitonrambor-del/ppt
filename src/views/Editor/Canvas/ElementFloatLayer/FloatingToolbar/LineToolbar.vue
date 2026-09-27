@@ -33,11 +33,12 @@
     </Popover>
     <div class="width-slider">
       <Slider
-        :min="1"
-        :max="12"
-        :step="1"
-        :value="handleLineElement.width"
-        @update:value="value => updateLine({ width: value as number })"
+        unit="mm"
+        :min="PX_TO_MM(1)"
+        :max="PX_TO_MM(12)"
+        :step="PX_TO_MM(1)"
+        :value="PX_TO_MM(handleLineElement.width)"
+        @update:value="value => updateLine({ width: MM_TO_PX(value as number) })"
       />
     </div>
   </div>
@@ -49,6 +50,7 @@ import { storeToRefs } from 'pinia'
 import { useMainStore, useSlidesStore } from '@/store'
 import type { LineStyleType, PPTLineElement } from '@/types/slides'
 import useHistorySnapshot from '@/hooks/useHistorySnapshot'
+import { MM_TO_PX, PX_TO_MM } from '@/configs/units'
 
 import SVGLine from '@/views/Editor/Toolbar/common/SVGLine.vue'
 import Popover from '@/components/Popover.vue'

@@ -198,5 +198,11 @@ const handleFocus = (e: Event) => {
     line-height: 30px;
     user-select: none;
   }
+
+  .suffix {
+    padding-right: 5px;
+    color: $textColor;
+    font-size: 12px;
+  }
 }
 </style>

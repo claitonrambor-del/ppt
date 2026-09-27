@@ -76,10 +76,13 @@
     <div class="row">
       <div style="width: 40%;">Espessura da linha:</div>
       <NumberInput 
-        :value="handleLineElement.width" 
-        @update:value="value => updateLine({ width: value })" 
+        :step="PX_TO_MM(1)"
+        :value="PX_TO_MM(handleLineElement.width)" 
+        @update:value="value => updateLine({ width: MM_TO_PX(value) })" 
         style="width: 60%;" 
-      />
+      >
+        <template #suffix>mm</template>
+      </NumberInput>
     </div>
     
     <div class="row">
@@ -136,6 +139,7 @@ import { storeToRefs } from 'pinia'
 import { useMainStore, useSlidesStore } from '@/store'
 import type { Broken2LineDirection, LinePoint, LineStyleType, PPTLineElement } from '@/types/slides'
 import useHistorySnapshot from '@/hooks/useHistorySnapshot'
+import { MM_TO_PX, PX_TO_MM } from '@/configs/units'
 
 import ElementShadow from '../common/ElementShadow.vue'
 import SVGLine from '../common/SVGLine.vue'

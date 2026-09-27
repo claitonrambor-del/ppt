@@ -21,10 +21,11 @@
           <div class="name">{{filter.label}}</div>
           <Slider
             class="filter-slider"
-            :max="filter.max"
+            :max="sliderMax(filter)"
             :min="0"
-            :step="filter.step"
-            :value="filter.value"
+            :step="sliderStep(filter)"
+            :value="sliderValue(filter)"
+            :unit="sliderUnit(filter)"
             @update:value="value => updateFilter(filter, value as number)"
           />
         </div>
@@ -39,6 +40,7 @@ import { storeToRefs } from 'pinia'
 import { useMainStore, useSlidesStore } from '@/store'
 import type { ImageElementFilterKeys, ImageElementFilters, PPTImageElement } from '@/types/slides'
 import useHistorySnapshot from '@/hooks/useHistorySnapshot'
+import { MM_TO_PX, PX_TO_MM } from '@/configs/units'
 
 import Switch from '@/components/Switch.vue'
 import Slider from '@/components/Slider.vue'
@@ -119,11 +121,19 @@ const filters2Style = (filters: ImageElementFilters) => {
 }
 
 // Aplicarfiltro
+const isLengthFilter = (filter: FilterOption) => filter.unit === 'px'
+
+const sliderValue = (filter: FilterOption) => isLengthFilter(filter) ? PX_TO_MM(filter.value) : filter.value
+const sliderMax = (filter: FilterOption) => isLengthFilter(filter) ? PX_TO_MM(filter.max) : filter.max
+const sliderStep = (filter: FilterOption) => isLengthFilter(filter) ? PX_TO_MM(filter.step) : filter.step
+const sliderUnit = (filter: FilterOption) => isLengthFilter(filter) ? 'mm' : ''
+
 const updateFilter = (filter: FilterOption, value: number) => {
   const _handleElement = handleElement.value as PPTImageElement
   
+  const nextValue = isLengthFilter(filter) ? MM_TO_PX(value) : value
   const originFilters = _handleElement.filters || {}
-  const filters = { ...originFilters, [filter.key]: `${value}${filter.unit}` }
+  const filters = { ...originFilters, [filter.key]: `${nextValue}${filter.unit}` }
   slidesStore.updateElement({ id: handleElementId.value, props: { filters } })
   addHistorySnapshot()
 }

@@ -56,7 +56,7 @@
       <div class="insert-handler-item group-btn" :class="{ 'active': creatingCustomShape || creatingElement?.type === 'shape' }" v-tooltip="'Inserir forma'" :offset="10">
         <Popover trigger="click" style="height: 100%;" v-model:value="shapePoolVisible" :offset="10">
           <template #content>
-            <ShapePool @select="shape => drawShape(shape)" />
+            <ShapePool @select="shape => openShapeSizeDialog(shape)" />
           </template>
           <div class="group-btn-main"><i-icon-park-outline:graphic-design class="icon" /> <span class="text">Forma</span></div>
         </Popover>
@@ -64,7 +64,7 @@
         <Popover trigger="click" v-model:value="shapeMenuVisible" style="height: 100%;" :offset="10">
           <template #content>
             <PopoverMenuItem center @click="shapeMenuVisible = false; shapePoolVisible = true"><i-icon-park-outline:graphic-design class="icon" />Formas predefinidas</PopoverMenuItem>
-            <PopoverMenuItem center @click="() => { shapeSizeDialogVisible = true; shapeMenuVisible = false }"><i-icon-park-outline:ruler class="icon" />Com tamanho (mm)</PopoverMenuItem>
+            <PopoverMenuItem center @click="() => { openShapeSizeDialog(); shapeMenuVisible = false }"><i-icon-park-outline:ruler class="icon" />Com tamanho (mm)</PopoverMenuItem>
             <PopoverMenuItem center @click="() => { svgPathEditorVisible = true; shapeMenuVisible = false }"><i-icon-park-outline:connection class="icon" />Desenho de caminho</PopoverMenuItem>
             <PopoverMenuItem center @click="() => { drawCustomShape(); shapeMenuVisible = false }"><i-icon-park-outline:writing-fluently class="icon" />Desenho livre</PopoverMenuItem>
           </template>
@@ -174,13 +174,17 @@
       :width="520"
       closeButton
     >
-      <ShapeSizeDialog @close="shapeSizeDialogVisible = false" />
+      <ShapeSizeDialog
+        :shape="pendingShape"
+        @close="closeShapeSizeDialog"
+        @cancel="cancelShapeSizeDialog"
+      />
     </Modal>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useMainStore, useSlidesStore, useSnapshotStore } from '@/store'
 import { getImageDataURL } from '@/utils/image'
@@ -249,6 +253,7 @@ const insertImageElement = (files: FileList) => {
 
 const shapePoolVisible = ref(false)
 const shapeSizeDialogVisible = ref(false)
+const pendingShape = ref<ShapePoolItem | undefined>()
 const linePoolVisible = ref(false)
 const chartPoolVisible = ref(false)
 const tableGeneratorVisible = ref(false)
@@ -276,6 +281,28 @@ const drawShape = (shape: ShapePoolItem) => {
   })
   shapePoolVisible.value = false
 }
+
+const openShapeSizeDialog = (shape?: ShapePoolItem) => {
+  pendingShape.value = shape
+  shapeSizeDialogVisible.value = true
+  shapePoolVisible.value = false
+}
+
+const closeShapeSizeDialog = () => {
+  pendingShape.value = undefined
+  shapeSizeDialogVisible.value = false
+}
+
+const cancelShapeSizeDialog = () => {
+  shapeSizeDialogVisible.value = false
+}
+
+watch(shapeSizeDialogVisible, visible => {
+  if (visible || !pendingShape.value) return
+  const shape = pendingShape.value
+  pendingShape.value = undefined
+  drawShape(shape)
+})
 // desenharPersonalizadolivrepolígono
 const drawCustomShape = () => {
   mainStore.setCreatingCustomShapeState(true)

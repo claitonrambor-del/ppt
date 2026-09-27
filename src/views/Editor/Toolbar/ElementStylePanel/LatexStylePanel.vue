@@ -21,23 +21,27 @@
     <div class="row">
       <div style="width: 40%;">Espessura:</div>
       <NumberInput 
-        :min="1"
-        :max="3"
-        :value="handleLatexElement.strokeWidth" 
-        @update:value="value => updateLatex({ strokeWidth: value })" 
+        :min="PX_TO_MM(1)"
+        :max="PX_TO_MM(3 * latexScale)"
+        :step="PX_TO_MM(1)"
+        :value="PX_TO_MM(handleLatexElement.strokeWidth * latexScale)" 
+        @update:value="value => updateLatex({ strokeWidth: MM_TO_PX(value) / latexScale })" 
         style="width: 60%;" 
-      />
+      >
+        <template #suffix>mm</template>
+      </NumberInput>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { type Ref } from 'vue'
+import { computed, type Ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useMainStore, useSlidesStore } from '@/store'
 import type { PPTLatexElement } from '@/types/slides'
 import emitter, { EmitterEvents } from '@/utils/emitter'
 import useHistorySnapshot from '@/hooks/useHistorySnapshot'
+import { MM_TO_PX, PX_TO_MM } from '@/configs/units'
 
 import ColorButton from '@/components/ColorButton.vue'
 import ColorPicker from '@/components/ColorPicker/index.vue'
@@ -50,6 +54,8 @@ const slidesStore = useSlidesStore()
 const { handleElement } = storeToRefs(useMainStore())
 
 const handleLatexElement = handleElement as Ref<PPTLatexElement>
+
+const latexScale = computed(() => handleLatexElement.value.width / handleLatexElement.value.viewBox[0])
 
 const { addHistorySnapshot } = useHistorySnapshot()
 
