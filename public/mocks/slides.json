@@ -1,0 +1,10 @@
+[
+  {
+    "id": "empty-slide-1",
+    "elements": [],
+    "background": {
+      "type": "solid",
+      "color": "#fff"
+    }
+  }
+]

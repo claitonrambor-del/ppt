@@ -1,0 +1,150 @@
+export const enum KEYS {
+  C = 'C',
+  X = 'X',
+  Z = 'Z',
+  Y = 'Y',
+  A = 'A',
+  G = 'G',
+  L = 'L',
+  F = 'F',
+  D = 'D',
+  B = 'B',
+  P = 'P',
+  O = 'O',
+  R = 'R',
+  T = 'T',
+  MINUS = '-',
+  EQUAL = '=',
+  DIGIT_0 = '0',
+  DELETE = 'DELETE',
+  UP = 'ARROWUP',
+  DOWN = 'ARROWDOWN',
+  LEFT = 'ARROWLEFT',
+  RIGHT = 'ARROWRIGHT',
+  ENTER = 'ENTER',
+  SPACE = ' ',
+  TAB = 'TAB',
+  BACKSPACE = 'BACKSPACE',
+  ESC = 'ESCAPE',
+  PAGEUP = 'PAGEUP',
+  PAGEDOWN = 'PAGEDOWN',
+  F5 = 'F5',
+}
+
+interface HotkeyItem {
+  type: string
+  children: {
+    label: string
+    value?: string
+  }[] 
+}
+
+export const HOTKEY_DOC: HotkeyItem[] = [
+  {
+    type: 'Geral',
+    children: [
+      { label: 'Recortar', value: 'Ctrl + X' },
+      { label: 'Copiar', value: 'Ctrl + C' },
+      { label: 'Colar', value: 'Ctrl + V' },
+      { label: 'Colar como texto simples', value: 'Ctrl + Shift + V' },
+      { label: 'Duplicar rapidamente', value: 'Ctrl + D' },
+      { label: 'Selecionar tudo', value: 'Ctrl + A' },
+      { label: 'Desfazer', value: 'Ctrl + Z' },
+      { label: 'Refazer', value: 'Ctrl + Y' },
+      { label: 'Excluir', value: 'Delete / Backspace' },
+      { label: 'Multiseleção', value: 'Segure Ctrl ou Shift' },
+      { label: 'Abrir localizar/substituir', value: 'Ctrl + F' },
+      { label: 'Imprimir', value: 'Ctrl + P' },
+      { label: 'Fechar janela', value: 'ESC' },
+    ],
+  },
+  {
+    type: 'Apresentação de slides',
+    children: [
+      { label: 'Apresentar a partir do primeiro slide', value: 'F5' },
+      { label: 'Apresentar a partir do slide atual', value: 'Shift + F5' },
+      { label: 'Página anterior', value: '↑ / ← / PgUp' },
+      { label: 'Próxima página', value: '↓ / → / PgDown' },
+      { label: 'Próxima página', value: 'Enter / Space' },
+      { label: 'Sair da apresentação', value: 'ESC' },
+    ],
+  },
+  {
+    type: 'Edição de slides',
+    children: [
+      { label: 'Novo slide', value: 'Enter' },
+      { label: 'Mover canvas', value: 'Space + Arrastar com o mouse' },
+      { label: 'Zoom do canvas', value: 'Ctrl + Roda do mouse' },
+      { label: 'Ampliar canvas', value: 'Ctrl + =' },
+      { label: 'Reduzir canvas', value: 'Ctrl + -' },
+      { label: 'Ajustar o canvas à tela atual', value: 'Ctrl + 0' },
+      { label: 'Página anterior (sem elemento selecionado)', value: '↑' },
+      { label: 'Próxima página (sem elemento selecionado)', value: '↓' },
+      { label: 'Página anterior', value: 'Rolar o mouse para cima / PgUp' },
+      { label: 'Próxima página', value: 'Rolar o mouse para baixo / PgDown' },
+      { label: 'Criar texto rápido', value: 'Duplo clique na área vazia / T' },
+      { label: 'Criar retângulo rápido', value: 'R' },
+      { label: 'Criar círculo rápido', value: 'O' },
+      { label: 'Criar linha rápida', value: 'L' },
+      { label: 'Sair do modo de desenho', value: 'Botão direito do mouse' },
+    ],
+  },
+  {
+    type: 'Operações com elementos',
+    children: [
+      { label: 'Mover', value: '↑ / ← / ↓ / →' },
+      { label: 'Fixar', value: 'Ctrl + L' },
+      { label: 'Agrupar', value: 'Ctrl + G' },
+      { label: 'Desagrupar', value: 'Ctrl + Shift + G' },
+      { label: 'Trazer para frente', value: 'Alt + F' },
+      { label: 'Enviar para trás', value: 'Alt + B' },
+      { label: 'Travar proporção', value: 'Segure Ctrl ou Shift' },
+      { label: 'Duplicar rápido', value: 'Ctrl + arrastar' },
+      { label: 'Criar linha horizontal/vertical', value: 'Segure Ctrl ou Shift' },
+      { label: 'Alternar elemento em foco', value: 'Tab' },
+      { label: 'Confirmar recorte da imagem', value: 'Enter' },
+      { label: 'Concluir desenho de forma personalizada', value: 'Enter' },
+    ],
+  },
+  {
+    type: 'Edição de tabela',
+    children: [
+      { label: 'Ir para a próxima célula', value: 'Tab' },
+      { label: 'Mover célula em foco', value: '↑ / ← / ↓ / →' },
+      { label: 'Inserir linha acima', value: 'Ctrl + ↑' },
+      { label: 'Inserir linha abaixo', value: 'Ctrl + ↓' },
+      { label: 'Inserir coluna à esquerda', value: 'Ctrl + ←' },
+      { label: 'Inserir coluna à direita', value: 'Ctrl + →' },
+    ],
+  },
+  {
+    type: 'Edição de dados do gráfico',
+    children: [
+      { label: 'Ir para a próxima linha', value: 'Enter' },
+    ],
+  },
+  {
+    type: 'Edição de texto',
+    children: [
+      { label: 'Negrito', value: 'Ctrl + B' },
+      { label: 'Itálico', value: 'Ctrl + I' },
+      { label: 'Sublinhado', value: 'Ctrl + U' },
+      { label: 'Código inline', value: 'Ctrl + E' },
+      { label: 'Sobrescrito', value: 'Ctrl + ;' },
+      { label: 'Subscrito', value: `Ctrl + '` },
+      { label: 'Selecionar parágrafo', value: `ESC` },
+    ],
+  },
+  {
+    type: 'OutrosAtalhos',
+    children: [
+      { label: 'Adicionar imagem - Colar imagem da área de transferência do sistema' },
+      { label: 'Adicionar imagem - Arraste imagens locais para o canvas' },
+      { label: 'Adicionar imagem - Cole código SVG no canvas' },
+      { label: 'Adicionar imagem - Colar link de imagem do pexels' },
+      { label: 'Adicionar texto - Colar texto da área de transferência do sistema' },
+      { label: 'Adicionar texto - Arraste texto selecionado de fora para o canvas' },
+      { label: 'Edição de texto - suporta sintaxe markdown para listas e citações' },
+    ],
+  },
+]
