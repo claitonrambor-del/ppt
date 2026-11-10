@@ -59,10 +59,15 @@ onMounted(async () => {
     if (!keepFresh) {
       const autosave = await getAutosave()
       if (autosave && autosave.slides && autosave.slides.length) {
-        slidesStore.setSlides(autosave.slides, autosave.theme)
-        slidesStore.setTitle(autosave.title)
+        // restore primeiro o cabeçalho e o tamanho da folha: o cabeçalho
+        // automático é construído na injeção do setSlides e precisa das
+        // dimensões corretas para posicionar os elementos
+        if (autosave.header) slidesStore.setHeader(autosave.header)
         slidesStore.setViewportSize(autosave.viewportSize || 1000)
         slidesStore.setViewportRatio(autosave.viewportRatio || 0.5625)
+        slidesStore.setSlides(autosave.slides, autosave.theme)
+        slidesStore.setTitle(autosave.title)
+        slidesStore.setSectors(autosave.sectors || [])
         slidesStore.updateSlideIndex(Math.min(autosave.slideIndex || 0, autosave.slides.length - 1))
         restored = true
       }

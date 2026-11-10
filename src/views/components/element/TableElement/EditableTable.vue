@@ -11,6 +11,13 @@
         :style="{ left: pos + 'px' }"
         @mousedown="$event => handleMousedownColHandler($event, index)"
       ></div>
+      <div 
+        class="row-drag-line" 
+        v-for="(pos, index) in dragLineRowPosition" 
+        :key="`row_${index}`"
+        :style="{ top: pos + 'px' }"
+        @mousedown="$event => handleMousedownRowHandler($event, index)"
+      ></div>
     </div>
     <table 
       :class="{
@@ -26,7 +33,7 @@
         <col span="1" v-for="(width, index) in colSizeList" :key="index" :width="width">
       </colgroup>
       <tbody>
-        <tr v-for="(rowCells, rowIndex) in tableCells" :key="rowIndex" :style="{ height: cellMinHeight + 'px' }">
+        <tr v-for="(rowCells, rowIndex) in tableCells" :key="rowIndex" :style="{ height: getRowHeight(rowIndex) + 'px' }">
           <td 
             class="cell"
             :class="{
@@ -48,12 +55,12 @@
               v-if="activedCell === `${rowIndex}_${colIndex}`"
               class="cell-text" 
               :class="{ 'active': activedCell === `${rowIndex}_${colIndex}` }"
-              :style="getTextStyle(cellMinHeight, cell.style)"
+              :style="getTextStyle(getRowHeight(rowIndex), cell.style)"
               :value="cell.text"
               @updateValue="value => handleInput(value, rowIndex, colIndex)"
               @insertExcelData="value => insertExcelData(value, rowIndex, colIndex)"
             />
-            <div v-else class="cell-text" :style="getTextStyle(cellMinHeight, cell.style)" v-html="formatText(cell.text)" />
+            <div v-else class="cell-text" :style="getTextStyle(getRowHeight(rowIndex), cell.style)" v-html="formatText(cell.text)" />
           </td>
         </tr>
       </tbody>
@@ -84,6 +91,7 @@ const props = withDefaults(defineProps<{
   width: number
   cellMinHeight: number
   colWidths: number[]
+  rowHeights?: number[]
   outline: PPTElementOutline
   theme?: TableTheme
   editable?: boolean
@@ -94,8 +102,23 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   (event: 'change', payload: TableCell[][]): void
   (event: 'changeColWidths', payload: number[]): void
+  (event: 'changeRowHeights', payload: number[]): void
   (event: 'changeSelectedCells', payload: string[]): void
 }>()
+
+// espelha as alturas vigentes das linhas (props.rowHeights ou cellMinHeight)
+// e serve de base para o arraste que redimensiona as linhas
+const rowSizeList = ref<number[]>([])
+watch([
+  () => props.rowHeights,
+  () => props.cellMinHeight,
+  () => props.data.length,
+], () => {
+  rowSizeList.value = props.data.map((_, i) => props.rowHeights?.[i] ?? props.cellMinHeight)
+}, { immediate: true })
+
+/** Altura (px) da linha informada */
+const getRowHeight = (rowIndex: number) => rowSizeList.value[rowIndex] ?? props.cellMinHeight
 
 const { canvasScale } = storeToRefs(useMainStore())
     
@@ -145,6 +168,18 @@ const dragLinePosition = computed(() => {
     dragLinePosition.push(pos)
   }
   return dragLinePosition
+})
+
+// posições (px) das linhas horizontais de arraste: uma em cada divisória entre
+// linhas + a borda inferior da tabela (para redimensionar a última linha)
+const dragLineRowPosition = computed(() => {
+  const positions: number[] = []
+  let pos = 0
+  for (const height of rowSizeList.value) {
+    pos += height
+    positions.push(pos)
+  }
+  return positions
 })
 
 // conjunto de posições de células inválidas (absorvidas por mesclagem)
@@ -410,6 +445,46 @@ const handleMousedownColHandler = (e: MouseEvent, colIndex: number) => {
     document.onmouseup = null
 
     emit('changeColWidths', colSizeList.value)
+  }
+}
+
+// Arrastar com o mouse ajustar a altura da linha (linhas horizontais)
+// Linha interna: redistribui a altura com a linha de baixo, preservando a
+// altura total da tabela. Borda inferior: altera a altura da última linha
+// (a tabela cresce/encolhe e a altura total é atualizada pelo elemento).
+const handleMousedownRowHandler = (e: MouseEvent, rowIndex: number) => {
+  removeSelectedCells()
+  let isMouseDown = true
+
+  const minHeight = 20
+  const startPageY = e.pageY
+
+  const originHeight = rowSizeList.value[rowIndex]
+  const belowHeight = rowSizeList.value[rowIndex + 1]
+  const hasBelowRow = belowHeight !== undefined
+  const totalHeight = originHeight + (belowHeight || 0)
+
+  document.onmousemove = e => {
+    if (!isMouseDown) return
+
+    const moveY = (e.pageY - startPageY) / canvasScale.value
+
+    if (hasBelowRow) {
+      const height = Math.min(Math.max(Math.round(originHeight + moveY), minHeight), totalHeight - minHeight)
+      rowSizeList.value[rowIndex] = height
+      rowSizeList.value[rowIndex + 1] = totalHeight - height
+    }
+    else {
+      const height = originHeight + moveY < minHeight ? minHeight : Math.round(originHeight + moveY)
+      rowSizeList.value[rowIndex] = height
+    }
+  }
+  document.onmouseup = () => {
+    isMouseDown = false
+    document.onmousemove = null
+    document.onmouseup = null
+
+    emit('changeRowHeights', rowSizeList.value)
   }
 }
 
@@ -880,5 +955,24 @@ table {
   opacity: 0;
   z-index: 2;
   cursor: col-resize;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+.row-drag-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: $themeColor;
+  margin-top: -1px;
+  opacity: 0;
+  z-index: 2;
+  cursor: row-resize;
+
+  &:hover {
+    opacity: 1;
+  }
 }
 </style>

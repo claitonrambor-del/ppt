@@ -44,15 +44,12 @@
           </div>
           <Divider :margin="10" />
           <PopoverMenuItem class="popover-menu-item" @click="openSaveProjectDialog(); mainMenuVisible = false"><i-icon-park-outline:save class="icon" /> Salvar no banco de dados</PopoverMenuItem>
-          <PopoverMenuItem class="popover-menu-item" @click="openProjectsDialog(); mainMenuVisible = false"><i-icon-park-outline:database-download class="icon" /> Abrir projeto</PopoverMenuItem>
+          <PopoverMenuItem class="popover-menu-item" @click="openProjectsDialog(); mainMenuVisible = false"><i-icon-park-outline:database-download class="icon" /> Abrir relatório</PopoverMenuItem>
           <Divider :margin="10" />
           <PopoverMenuItem class="popover-menu-item" @click="setDialogForExport('pptx')"><i-icon-park-outline:download class="icon" /> Exportar arquivo</PopoverMenuItem>
+          <PopoverMenuItem class="popover-menu-item" @click="setDialogForExport('pdf')"><i-icon-park-outline:file-pdf class="icon" /> Baixar PDF</PopoverMenuItem>
           <Divider :margin="10" />
-          <PopoverMenuItem class="popover-menu-item" @click="resetSlides(); mainMenuVisible = false"><i-icon-park-outline:refresh class="icon" /> Redefinir apresentação</PopoverMenuItem>
-          <PopoverMenuItem class="popover-menu-item" @click="openMarkupPanel(); mainMenuVisible = false"><i-icon-park-outline:mark class="icon" /> Marcação de tipo de slide</PopoverMenuItem>
-          <PopoverMenuItem class="popover-menu-item" @click="mainMenuVisible = false; hotkeyDrawerVisible = true"><i-icon-park-outline:command class="icon" /> Atalhos</PopoverMenuItem>
-          <PopoverMenuItem class="popover-menu-item" @click="goLink('https://github.com/pipipi-pikachu/PPTist/issues')"><i-icon-park-outline:comment class="icon" /> Feedback</PopoverMenuItem>
-          <PopoverMenuItem class="popover-menu-item" @click="goLink('https://github.com/pipipi-pikachu/PPTist/blob/master/doc/Q&A.md')"><i-icon-park-outline:helpcenter class="icon" /> Perguntas frequentes</PopoverMenuItem>
+          <PopoverMenuItem class="popover-menu-item" @click="openSettingsDialog(); mainMenuVisible = false"><i-icon-park-outline:setting-two class="icon" /> Configurações</PopoverMenuItem>
           <Divider :margin="10" />
           <div class="statement">Observação: este site é apenas para testes/demonstração e não fornece nenhum serviço</div>
         </template>
@@ -76,19 +73,32 @@
       </div>
     </div>
 
-    <Drawer
-      :width="320"
-      v-model:visible="hotkeyDrawerVisible"
-      placement="right"
-    >
-      <HotkeyDoc />
-      <template v-slot:title>Atalhos</template>
-    </Drawer>
+    <!-- Ações do relatório: obras salvas, editar cabeçalho, salvar no banco e criar um novo -->
+    <div class="report-actions">
+      <Button size="small" @click="openProjectsDialog()">
+        <i-icon-park-outline:folder-open class="icon" /> Obras salvas
+      </Button>
+      <Button size="small" @click="dashboardDialogVisible = true">
+        <i-icon-park-outline:chart-histogram class="icon" /> Dashboard
+      </Button>
+      <Button size="small" @click="headerDialogVisible = true">
+        <i-icon-park-outline:edit class="icon" /> Editar cabeçalho
+      </Button>
+      <Button size="small" @click="sectorsDialogVisible = true">
+        <i-icon-park-outline:tag-one class="icon" /> Setores
+      </Button>
+      <Button size="small" type="primary" @click="openSaveProjectDialog()">
+        <i-icon-park-outline:save class="icon" /> Salvar
+      </Button>
+      <Button size="small" @click="createNewReport()">
+        <i-icon-park-outline:plus class="icon" /> Novo relatório
+      </Button>
+    </div>
 
-    <!-- Projetos: salvar/abrir no banco de dados persistente -->
+    <!-- Relatórios: salvar/abrir no banco de dados persistente -->
     <Modal
       :visible="projectsDialogVisible"
-      :width="480"
+      :width="projectsDialogMode === 'manage' ? 560 : 480"
       closeButton
       @update:visible="projectsDialogVisible = $event"
     >
@@ -96,6 +106,46 @@
         :mode="projectsDialogMode"
         @close="projectsDialogVisible = false"
       />
+    </Modal>
+
+    <!-- Dashboard: quantidade de obras salvas por setor -->
+    <Modal
+      :visible="dashboardDialogVisible"
+      :width="920"
+      closeButton
+      @update:visible="dashboardDialogVisible = $event"
+    >
+      <DashboardDialog @close="dashboardDialogVisible = false" />
+    </Modal>
+
+    <!-- Cabeçalho: modal para digitar título e campos (CLIENTE, ENDEREÇO...) -->
+    <Modal
+      :visible="headerDialogVisible"
+      :width="480"
+      closeButton
+      @update:visible="headerDialogVisible = $event"
+    >
+      <HeaderDialog @close="headerDialogVisible = false" />
+    </Modal>
+
+    <!-- Setores: marcação exibida fora da folha, sem entrar na impressão -->
+    <Modal
+      :visible="sectorsDialogVisible"
+      :width="420"
+      closeButton
+      @update:visible="sectorsDialogVisible = $event"
+    >
+      <SectorsDialog @close="sectorsDialogVisible = false" />
+    </Modal>
+
+    <!-- Configurações: cadastros do sistema -->
+    <Modal
+      :visible="settingsDialogVisible"
+      :width="720"
+      closeButton
+      @update:visible="settingsDialogVisible = $event"
+    >
+      <SettingsDialog @close="settingsDialogVisible = false" />
     </Modal>
 
     <FullscreenSpin :loading="exporting" tip="Importando..." />
@@ -108,29 +158,34 @@ import { storeToRefs } from 'pinia'
 import { useMainStore, useSlidesStore } from '@/store'
 import useImport from '@/hooks/useImport'
 import useSlideHandler from '@/hooks/useSlideHandler'
+import useHistorySnapshot from '@/hooks/useHistorySnapshot'
+import message from '@/utils/message'
 import type { DialogForExportTypes } from '@/types/export'
 
-import HotkeyDoc from './HotkeyDoc.vue'
 import ProjectsDialog from './ProjectsDialog.vue'
+import DashboardDialog from './DashboardDialog.vue'
+import HeaderDialog from './HeaderDialog.vue'
+import SectorsDialog from './SectorsDialog.vue'
+import SettingsDialog from './SettingsDialog.vue'
 import FileInput from '@/components/FileInput.vue'
 import FullscreenSpin from '@/components/FullscreenSpin.vue'
-import Drawer from '@/components/Drawer.vue'
 import Modal from '@/components/Modal.vue'
 import Input from '@/components/Input.vue'
 import Popover from '@/components/Popover.vue'
 import PopoverMenuItem from '@/components/PopoverMenuItem.vue'
 import Divider from '@/components/Divider.vue'
+import Button from '@/components/Button.vue'
 
 const mainStore = useMainStore()
 const slidesStore = useSlidesStore()
-const { title } = storeToRefs(slidesStore)
+const { title, header } = storeToRefs(slidesStore)
 const { importSpecificFile, importPPTXFile, importJSON, exporting } = useImport()
 const { resetSlides } = useSlideHandler()
+const { addHistorySnapshot } = useHistorySnapshot()
 
 const mainMenuVisible = ref(false)
-const hotkeyDrawerVisible = ref(false)
 
-// projetos no banco de dados (salvar/abrir)
+// relatórios no banco de dados (salvar/abrir)
 const projectsDialogVisible = ref(false)
 const projectsDialogMode = ref<'save' | 'manage'>('save')
 const openSaveProjectDialog = () => {
@@ -140,6 +195,39 @@ const openSaveProjectDialog = () => {
 const openProjectsDialog = () => {
   projectsDialogMode.value = 'manage'
   projectsDialogVisible.value = true
+}
+
+// dashboard de obras por setor
+const dashboardDialogVisible = ref(false)
+
+// modal de edição do cabeçalho (título e campos)
+const headerDialogVisible = ref(false)
+
+// modal de seleção dos setores do relatório (anotação fora da folha)
+const sectorsDialogVisible = ref(false)
+
+// modal de configurações (cadastros do sistema)
+const settingsDialogVisible = ref(false)
+const openSettingsDialog = () => {
+  settingsDialogVisible.value = true
+}
+
+/**
+ * Novo relatório: começa um documento em branco no banco de trabalho.
+ * O cabeçalho é limpo ANTES do resetSlides: a injeção automática do
+ * cabeçalho na nova página usa o estado atual do store.
+ */
+const createNewReport = () => {
+  if (!window.confirm('Criar um novo relatório? O relatório atual (não salvo) será substituído.')) return
+
+  slidesStore.setHeader({
+    fields: header.value.fields.map(field => ({ ...field, value: '' })),
+  })
+  slidesStore.setSectors([])
+  resetSlides()
+  slidesStore.setTitle('')
+  addHistorySnapshot()
+  message.success('Novo relatório criado')
 }
 
 const editingTitle = ref(false)
@@ -157,18 +245,9 @@ const handleUpdateTitle = () => {
   editingTitle.value = false
 }
 
-const goLink = (url: string) => {
-  window.open(url)
-  mainMenuVisible.value = false
-}
-
 const setDialogForExport = (type: DialogForExportTypes) => {
   mainStore.setDialogForExport(type)
   mainMenuVisible.value = false
-}
-
-const openMarkupPanel = () => {
-  mainStore.setMarkupPanelState(true)
 }
 
 const openAIPPTDialog = () => {
@@ -304,6 +383,16 @@ const openAIPPTDialog = () => {
   }
 }
 
+.report-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-right: 5px;
+
+  .icon {
+    margin-right: 3px;
+  }
+}
 .title {
   height: 30px;
   margin-left: 2px;

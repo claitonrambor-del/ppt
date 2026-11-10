@@ -335,21 +335,25 @@ export default () => {
     const reader = new FileReader()
     reader.addEventListener('load', () => {
       try {
-        const { title, slides, theme, width, height } = JSON.parse(reader.result as string)
+        const { title, slides, theme, width, height, header } = JSON.parse(reader.result as string)
         const aspectRatio = getAspectRatio(width, height)
+
+        // cabeçalho e dimensões antes do setSlides: a injeção automática do
+        // cabeçalho usa o tamanho da folha para calcular a geometria
+        if (header) slidesStore.setHeader(header)
 
         if (cover) {
           slidesStore.updateSlideIndex(0)
-          slidesStore.setSlides(slides, (theme || {}))
-          if (title) slidesStore.setTitle(title)
           if (aspectRatio !== viewportRatio.value) slidesStore.setViewportRatio(aspectRatio)
           if (width && width !== viewportSize) slidesStore.setViewportSize(width)
+          slidesStore.setSlides(slides, (theme || {}))
+          if (title) slidesStore.setTitle(title)
           addHistorySnapshot()
         }
         else if (isEmptySlide.value) {
-          slidesStore.setSlides(slides, (theme || {}))
           if (aspectRatio !== viewportRatio.value) slidesStore.setViewportRatio(aspectRatio)
           if (width && width !== viewportSize) slidesStore.setViewportSize(width)
+          slidesStore.setSlides(slides, (theme || {}))
           addHistorySnapshot()
         }
         else addSlidesFromData(slides)
@@ -368,21 +372,25 @@ export default () => {
     const reader = new FileReader()
     reader.addEventListener('load', () => {
       try {
-        const { title, slides, theme, width, height } = JSON.parse(decrypt(reader.result as string))
+        const { title, slides, theme, width, height, header } = JSON.parse(decrypt(reader.result as string))
         const aspectRatio = getAspectRatio(width, height)
+
+        // cabeçalho e dimensões antes do setSlides: a injeção automática do
+        // cabeçalho usa o tamanho da folha para calcular a geometria
+        if (header) slidesStore.setHeader(header)
 
         if (cover) {
           slidesStore.updateSlideIndex(0)
-          slidesStore.setSlides(slides, (theme || {}))
-          if (title) slidesStore.setTitle(title)
           if (aspectRatio !== viewportRatio.value) slidesStore.setViewportRatio(aspectRatio)
           if (width && width !== viewportSize) slidesStore.setViewportSize(width)
+          slidesStore.setSlides(slides, (theme || {}))
+          if (title) slidesStore.setTitle(title)
           addHistorySnapshot()
         }
         else if (isEmptySlide.value) {
-          slidesStore.setSlides(slides, (theme || {}))
           if (aspectRatio !== viewportRatio.value) slidesStore.setViewportRatio(aspectRatio)
           if (width && width !== viewportSize) slidesStore.setViewportSize(width)
+          slidesStore.setSlides(slides, (theme || {}))
           addHistorySnapshot()
         }
         else addSlidesFromData(slides)

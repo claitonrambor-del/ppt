@@ -2,8 +2,8 @@
   <div class="margins-setting">
     <div class="title">Margens de trabalho padrão</div>
     <div class="tip">
-      Área útil definida pelo trabalho padrão (lean). A margem padrão é de 7mm
-      em cada lado e escala proporcionalmente quando o tamanho da folha muda.
+      A margem de trabalho é o espaço reservado nas 4 bordas da folha (margens
+      trabalho, marcações, área de tópicos). A margem padrão é de 7mm em cada lado.
     </div>
 
     <div class="row">
@@ -74,9 +74,7 @@ import useHistorySnapshot from '@/hooks/useHistorySnapshot'
 import NumberInput from '@/components/NumberInput.vue'
 import Button from '@/components/Button.vue'
 
-const emit = defineEmits<{
-  (event: 'close'): void
-}>()
+const emit = defineEmits<{ (event: 'close'): void }>()
 
 const slidesStore = useSlidesStore()
 const { slides, currentSlide } = storeToRefs(slidesStore)
@@ -93,7 +91,6 @@ const updateMargin = (side: keyof Margins, value: number) => {
   addHistorySnapshot()
 }
 
-// Fixa as margens atuais em todos os slides (trabalho padrão uniforme)
 const applyToAllSlides = () => {
   const { left, top, right, bottom } = margins.value
   const newSlides = slides.value.map(slide => ({

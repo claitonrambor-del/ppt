@@ -113,6 +113,26 @@
           <i-icon-park-outline:insert-table class="icon" /> <span class="text">Tabela</span>
         </div>
       </Popover>
+      <!-- Módulo de vistoria: dois modelos (meia folha / folha inteira) -->
+      <div
+        class="insert-handler-item group-btn"
+        v-tooltip="'Adicionar módulo de vistoria (tabela + foto) — meia folha (2 por página)'"
+      >
+        <div class="group-btn-main" @click="addReportModule()">
+          <i-icon-park-outline:copy class="icon" /> <span class="text">Módulo</span>
+        </div>
+        <Popover trigger="click" v-model:value="moduleMenuVisible" style="height: 100%;" :offset="10">
+          <template #content>
+            <PopoverMenuItem center @click="() => { addReportModule(); moduleMenuVisible = false }">
+              <i-icon-park-outline:copy class="icon" /> Módulo de meia folha (2 por página)
+            </PopoverMenuItem>
+            <PopoverMenuItem center @click="() => { addReportModule('full'); moduleMenuVisible = false }">
+              <i-icon-park-outline:full-screen class="icon" /> Módulo de folha inteira (1 por página)
+            </PopoverMenuItem>
+          </template>
+          <span class="arrow"><i-icon-park-outline:down /></span>
+        </Popover>
+      </div>
       <div class="insert-handler-item" v-tooltip="'Inserir fórmula'" @click="latexEditorVisible = true">
         <i-icon-park-outline:formula class="icon" /> <span class="text">Fórmula</span>
       </div>
@@ -194,6 +214,7 @@ import type { PPTShapeElement } from '@/types/slides'
 import useScaleCanvas from '@/hooks/useScaleCanvas'
 import useHistorySnapshot from '@/hooks/useHistorySnapshot'
 import useCreateElement from '@/hooks/useCreateElement'
+import useAddReportModule from '@/hooks/useAddReportModule'
 
 import ShapePool from './ShapePool.vue'
 import ShapeSizeDialog from './ShapeSizeDialog.vue'
@@ -245,6 +266,8 @@ const {
   createShapeElement,
 } = useCreateElement()
 
+const { addReportModule } = useAddReportModule()
+
 const insertImageElement = (files: FileList) => {
   const imageFile = files[0]
   if (!imageFile) return
@@ -264,6 +287,7 @@ const textTypeSelectVisible = ref(false)
 const shapeMenuVisible = ref(false)
 const imageMenuVisible = ref(false)
 const moreVisible = ref(false)
+const moduleMenuVisible = ref(false)
 
 // desenhartextofaixa
 const drawText = (vertical = false) => {

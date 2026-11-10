@@ -731,6 +731,8 @@ const updatePaperOrientation = (orientation: PaperOrientation) => {
   margin: 0 0 4px;
 }
 
+/* --- Cabeçalho automático: editado no dialog (EditorHeader/HeaderDialog.vue) --- */
+
 .theme-list {
   @include flex-grid-layout();
 }

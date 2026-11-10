@@ -64,7 +64,7 @@ export const useMainStore = defineStore('main', {
     showBubbleMenu: true, // Mostrar menu flutuante (toolbar dos elementos selecionados)
     creatingElement: null, // Informações do elemento sendo inserido, criado por desenho (texto, forma, linha)
     creatingCustomShape: false, // Desenhando polígono livre
-    toolbarState: ToolbarStates.SLIDE_DESIGN, // Estado da barra lateral direita
+    toolbarState: ToolbarStates.HOME, // Aba ativa do ribbon (começa na Página Inicial)
     clipingImageElementId: '', // ID da imagem em recorte  
     richTextAttrs: defaultRichTextAttrs, // Estado do texto rico
     selectedTableCells: [], // Células de tabela selecionadas

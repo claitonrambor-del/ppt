@@ -1,18 +1,18 @@
 <template>
   <div class="projects-dialog">
-    <!-- Modo salvar: nome + destino (novo projeto ou atualizar existente) -->
+    <!-- Modo salvar: nome + destino (novo relatório ou atualizar existente) -->
     <template v-if="mode === 'save'">
       <div class="save-form">
-        <div class="field-label">Salvar projeto no banco de dados</div>
+        <div class="field-label">Salvar relatório no banco de dados</div>
         <Input
           ref="inputRef"
           v-model:value="projectName"
-          placeholder="Nome do projeto"
+          placeholder="Nome do relatório"
           @enter="save()"
         />
 
         <template v-if="projects.length">
-          <div class="field-label existing-label">Ou atualize um projeto existente:</div>
+          <div class="field-label existing-label">Ou atualize um relatório existente:</div>
           <div class="existing-list">
             <div
               class="existing-item"
@@ -30,13 +30,14 @@
       <div class="btns">
         <Button @click="emit('close')" style="margin-right: 10px;">Cancelar</Button>
         <Button type="primary" @click="save()">
-          {{ selectedProjectId ? 'Atualizar projeto' : 'Salvar novo projeto' }}
+          {{ selectedProjectId ? 'Atualizar relatório' : 'Salvar novo relatório' }}
         </Button>
       </div>
     </template>
 
     <!-- Modo abrir/gerenciar: lista com abrir, renomear e excluir -->
     <template v-else>
+      <div class="dialog-title">Obras salvas</div>
       <div class="manage-list" v-if="projects.length">
         <div class="project-item" v-for="item in projects" :key="item.id">
           <div class="info">
@@ -59,11 +60,14 @@
         </div>
       </div>
       <div class="empty" v-else>
-        Nenhum projeto salvo ainda.
-        <br />Use o menu principal → "Salvar no banco de dados".
+        Nenhuma obra salva ainda.
+        <br />Use "Salvar obra atual" para guardar a apresentação que está em edição.
       </div>
-      <div class="btns" v-if="projects.length">
+      <div class="btns manage-btns">
         <Button @click="emit('close')">Fechar</Button>
+        <Button type="primary" :disabled="savingCurrent" @click="saveCurrent()">
+          <i-icon-park-outline:save class="btn-icon" /> Salvar obra atual
+        </Button>
       </div>
     </template>
   </div>
@@ -96,13 +100,14 @@ const emit = defineEmits<{
 
 const mainStore = useMainStore()
 const slidesStore = useSlidesStore()
-const { title, theme, slides, viewportSize, viewportRatio } = storeToRefs(slidesStore)
+const { title, theme, slides, viewportSize, viewportRatio, header, sectors } = storeToRefs(slidesStore)
 const inputRef = useTemplateRef<InstanceType<typeof Input>>('inputRef')
 const { addHistorySnapshot } = useHistorySnapshot()
 
 const projects = ref<StoredProject[]>([])
 const projectName = ref('')
 const selectedProjectId = ref('')
+const savingCurrent = ref(false)
 
 onMounted(async () => {
   // diálogos desativam atalhos globais (padrão do projeto)
@@ -124,6 +129,8 @@ const currentProjectData = computed(() => ({
   slides: slides.value,
   viewportSize: viewportSize.value,
   viewportRatio: viewportRatio.value,
+  header: header.value,
+  sectors: sectors.value,
 }))
 
 const selectExisting = (item: StoredProject) => {
@@ -142,39 +149,43 @@ const save = async () => {
   try {
     if (selectedProjectId.value) {
       await updateStoredProject(selectedProjectId.value, projectName.value.trim(), currentProjectData.value)
-      message.success('Projeto atualizado no banco de dados')
+      message.success('Relatório atualizado no banco de dados')
     }
     else {
       await addStoredProject(projectName.value.trim(), currentProjectData.value)
-      message.success('Projeto salvo no banco de dados! Use "Abrir projeto" para recuperá-lo')
+      message.success('Relatório salvo no banco de dados! Use "Abrir relatório" para recuperá-lo')
     }
     emit('close')
   }
   catch (err) {
-    message.error(err instanceof Error ? err.message : 'Erro ao salvar projeto')
+    message.error(err instanceof Error ? err.message : 'Erro ao salvar relatório')
   }
 }
 
-/** Abre um projeto salvo: substitui a apresentação atual no editor */
+/** Abre um relatório salvo: substitui o relatório atual no editor */
 const open = async (item: StoredProject) => {
-  if (!window.confirm(`Abrir "${item.title}"? A apresentação atual (não salva) será substituída.`)) return
+  if (!window.confirm(`Abrir relatório "${item.title}"? O relatório atual (não salvo) será substituído.`)) return
 
   const { data } = item
   mainStore.setActiveElementIdList([])
-  slidesStore.setSlides(JSON.parse(JSON.stringify(data.slides)), data.theme)
-  slidesStore.setTitle(data.title)
+  // cabeçalho e dimensões antes do setSlides: a injeção automática do
+  // cabeçalho usa o tamanho atual da folha para calcular a geometria
+  if (data.header) slidesStore.setHeader(data.header)
   slidesStore.setViewportSize(data.viewportSize || 1000)
   slidesStore.setViewportRatio(data.viewportRatio || 0.5625)
+  slidesStore.setSlides(JSON.parse(JSON.stringify(data.slides)), data.theme)
+  slidesStore.setSectors(data.sectors || [])
+  slidesStore.setTitle(data.title)
   slidesStore.updateSlideIndex(0)
 
   // reinicia o histórico (undo) para o estado recém-aberto
   await useSnapshotStoreFresh()
 
-  message.success(`Projeto "${item.title}" aberto`)
+  message.success(`Relatório "${item.title}" aberto`)
   emit('close')
 }
 
-/** Limpa o histórico de snapshots e cria o estado inicial do projeto aberto */
+/** Limpa o histórico de snapshots e cria o estado inicial do relatório aberto */
 const useSnapshotStoreFresh = async () => {
   const { db } = await import('@/utils/database')
   await db.snapshots.clear()
@@ -185,19 +196,39 @@ const useSnapshotStoreFresh = async () => {
   addHistorySnapshot()
 }
 
+/**
+ * Salva a obra que está em edição no momento (sem fechar a lista) e
+ * recarrega a lista, para ela já aparecer entre as obras salvas.
+ */
+const saveCurrent = async () => {
+  if (savingCurrent.value) return
+  savingCurrent.value = true
+  try {
+    const saved = await addStoredProject(title.value.trim(), currentProjectData.value)
+    projects.value = await getStoredProjects()
+    message.success(`Obra "${saved.title}" salva em Obras salvas`)
+  }
+  catch (err) {
+    message.error(err instanceof Error ? err.message : 'Erro ao salvar a obra atual')
+  }
+  finally {
+    savingCurrent.value = false
+  }
+}
+
 const rename = async (item: StoredProject) => {
-  const name = window.prompt('Novo nome do projeto:', item.title)
+  const name = window.prompt('Novo nome do relatório:', item.title)
   if (name === null) return
   await updateStoredProject(item.id, name.trim(), item.data)
   projects.value = await getStoredProjects()
-  message.success('Projeto renomeado')
+  message.success('Relatório renomeado')
 }
 
 const remove = async (item: StoredProject) => {
-  if (!window.confirm(`Excluir o projeto "${item.title}"? Esta ação não pode ser desfeita.`)) return
+  if (!window.confirm(`Excluir o relatório "${item.title}"? Esta ação não pode ser desfeita.`)) return
   await deleteStoredProject(item.id)
   projects.value = await getStoredProjects()
-  message.success('Projeto excluído')
+  message.success('Relatório excluído')
 }
 
 const formatDateTime = (time: number) => {
@@ -215,6 +246,11 @@ const formatDateTime = (time: number) => {
 .projects-dialog {
   font-size: 13px;
   line-height: 1.675;
+}
+.dialog-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 12px;
 }
 .field-label {
   font-weight: 700;
@@ -315,5 +351,15 @@ const formatDateTime = (time: number) => {
 .btns {
   margin-top: 16px;
   text-align: right;
+}
+.manage-btns {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+
+  .btn-icon {
+    margin-right: 3px;
+  }
 }
 </style>

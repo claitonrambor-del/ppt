@@ -1,6 +1,7 @@
 <template>
   <div class="pptist-editor">
     <EditorHeader class="layout-header" />
+    <Toolbar class="layout-ribbon" />
     <div class="layout-content">
       <Thumbnails class="layout-content-left" />
       <div class="layout-content-center">
@@ -12,7 +13,6 @@
           :style="{ height: `${remarkHeight}px` }"
         />
       </div>
-      <Toolbar class="layout-content-right" />
     </div>
   </div>
 
@@ -95,12 +95,25 @@ usePasteEvent()
 <style lang="scss" scoped>
 .pptist-editor {
   height: 100%;
+  /* coluna flex: a faixa (ribbon) cresce conforme o conteúdo e o canvas
+     ocupa o restante — assim nada fica cortado na horizontal */
+  display: flex;
+  flex-direction: column;
 }
 .layout-header {
   height: 40px;
+  flex-shrink: 0;
+}
+/*
+  Ribbon no topo (estilo PowerPoint): abas + conteúdo em uma única linha
+  compacta. Altura fixa — o que não cabe rola na horizontal dentro da faixa.
+*/
+.layout-ribbon {
+  flex-shrink: 0;
 }
 .layout-content {
-  height: calc(100% - 40px);
+  flex: 1;
+  min-height: 0;
   display: flex;
 }
 .layout-content-left {
@@ -109,14 +122,10 @@ usePasteEvent()
   flex-shrink: 0;
 }
 .layout-content-center {
-  width: calc(100% - 160px - 260px);
+  width: calc(100% - 160px);
 
   .center-top {
     height: 40px;
   }
-}
-.layout-content-right {
-  width: 260px;
-  height: 100%;
 }
 </style>

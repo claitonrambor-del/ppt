@@ -17,7 +17,7 @@
         <col span="1" v-for="(width, index) in colSizeList" :key="index" :width="width">
       </colgroup>
       <tbody>
-        <tr v-for="(rowCells, rowIndex) in data" :key="rowIndex" :style="{ height: cellMinHeight + 'px' }">
+        <tr v-for="(rowCells, rowIndex) in data" :key="rowIndex" :style="{ height: getRowHeight(rowIndex) + 'px' }">
           <td 
             class="cell"
             :style="getCellStyle(outline, cell.style)"
@@ -27,7 +27,7 @@
             :colspan="cell.colspan"
             v-show="!hideCells.includes(`${rowIndex}_${colIndex}`)"
           >
-            <div class="cell-text" :style="getTextStyle(cellMinHeight, cell.style)" v-html="formatText(cell.text)" />
+            <div class="cell-text" :style="getTextStyle(getRowHeight(rowIndex), cell.style)" v-html="formatText(cell.text)" />
           </td>
         </tr>
       </tbody>
@@ -47,12 +47,16 @@ const props = withDefaults(defineProps<{
   width: number
   cellMinHeight: number
   colWidths: number[]
+  rowHeights?: number[]
   outline: PPTElementOutline
   theme?: TableTheme
   editable?: boolean
 }>(), {
   editable: true,
 })
+
+/** Altura (px) da linha informada: usa `rowHeights` quando disponível */
+const getRowHeight = (rowIndex: number) => props.rowHeights?.[rowIndex] ?? props.cellMinHeight
 
 const colSizeList = ref<number[]>([])
 const totalWidth = computed(() => colSizeList.value.reduce((a, b) => a + b))

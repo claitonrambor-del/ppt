@@ -7,7 +7,12 @@ import { type ShapePoolItem, SHAPE_PATH_FORMULAS } from '@/configs/shapes'
 import type { LinePoolItem } from '@/configs/lines'
 import { CHART_DEFAULT_DATA } from '@/configs/chart'
 import { resolveMargins, getWorkArea, fitBoxIntoWorkArea, fitLinePointsIntoWorkArea } from '@/modules/margins'
+import { MM_TO_PX } from '@/configs/units'
 import useHistorySnapshot from '@/hooks/useHistorySnapshot'
+
+/** Padrão das linhas inseridas pelo usuário: vermelho vivo e 1,2 mm */
+const DEFAULT_LINE_COLOR = '#FF1A3C'
+const DEFAULT_LINE_WIDTH = MM_TO_PX(1.2)
 
 interface CommonElementPosition {
   top: number
@@ -245,10 +250,20 @@ export default () => {
    * criarLinhaelemento
    * @param position PosiçãoGrandePequenoinformação
    * @param data Linhado caminho e Estilo
+   * @param supplement Propriedades extras (cor, espessura, nome) aplicadas ao elemento
+   * @param options fitToMargins: encaixa as pontas na área útil (padrão). Desative quando
+   *                a linha já foi posicionada em relação a uma caixa própria.
    */
-  const createLineElement = (position: LineElementPosition, data: LinePoolItem) => {
-    const fitted = fitInitialPositionToMargins(position)
-    const { left, top, start, end } = fitted as unknown as LineElementPosition
+  const createLineElement = (
+    position: LineElementPosition,
+    data: LinePoolItem,
+    supplement: Partial<PPTLineElement> = {},
+    options: { fitToMargins?: boolean } = {},
+  ) => {
+    const fitted = options.fitToMargins === false
+      ? position
+      : fitInitialPositionToMargins(position) as unknown as LineElementPosition
+    const { left, top, start, end } = fitted
 
     const newElement: PPTLineElement = {
       type: 'line',
@@ -258,9 +273,10 @@ export default () => {
       start,
       end,
       points: data.points,
-      color: theme.value.themeColors[0],
+      color: DEFAULT_LINE_COLOR,
       style: data.style,
-      width: 2,
+      width: DEFAULT_LINE_WIDTH,
+      ...supplement,
     }
     if (data.isBroken) newElement.broken = [(start[0] + end[0]) / 2, (start[1] + end[1]) / 2]
     if (data.isBroken2) newElement.broken2 = [(start[0] + end[0]) / 2, (start[1] + end[1]) / 2]

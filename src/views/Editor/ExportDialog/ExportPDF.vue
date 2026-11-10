@@ -50,24 +50,30 @@
         </div>
       </div>
       <div class="tip">
-        Dica: na janela de impressão, marque a opção "Gráficos de plano de fundo" e selecione margens "Padrão".
+        O download gera um arquivo PDF em A4. Para imprimir, na janela de impressão marque "Gráficos de plano de fundo" e selecione margens "Padrão".
       </div>
     </div>
 
     <div class="btns">
-      <Button class="btn export" type="primary" @click="expPDF()"><i-icon-park-outline:download /> Imprimir / Exportar PDF</Button>
+      <Button class="btn export" type="primary" :disabled="downloading" @click="downloadPDF()"><i-icon-park-outline:download /> Baixar PDF</Button>
+      <Button class="btn print" :disabled="downloading" @click="expPDF()"><i-icon-park-outline:printer /> Imprimir</Button>
       <Button class="btn close" @click="emit('close')">Fechar</Button>
     </div>
+
+    <FullscreenSpin :loading="downloading" tip="Gerando PDF..." />
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, useTemplateRef } from 'vue'
 import { storeToRefs } from 'pinia'
+import { toPng } from 'html-to-image'
 import { useSlidesStore } from '@/store'
 import { print } from '@/utils/print'
+import message from '@/utils/message'
 
 import ThumbnailSlide from '@/views/components/ThumbnailSlide/index.vue'
+import FullscreenSpin from '@/components/FullscreenSpin.vue'
 import Switch from '@/components/Switch.vue'
 import Button from '@/components/Button.vue'
 import RadioButton from '@/components/RadioButton.vue'
@@ -78,12 +84,13 @@ const emit = defineEmits<{
   (event: 'close'): void
 }>()
 
-const { slides, currentSlide, viewportRatio } = storeToRefs(useSlidesStore())
+const { slides, currentSlide, viewportRatio, title } = storeToRefs(useSlidesStore())
 
 const pdfThumbnailsRef = useTemplateRef<HTMLElement>('pdfThumbnailsRef')
 const rangeType = ref<'all' | 'current'>('all')
 const count = ref(1)
 const padding = ref(true)
+const downloading = ref(false)
 
 const expPDF = () => {
   if (!pdfThumbnailsRef.value) return
@@ -93,6 +100,80 @@ const expPDF = () => {
     margin: padding.value ? 50 : 0,
   }
   print(pdfThumbnailsRef.value, pageSize)
+}
+
+/**
+ * Gera e baixa um PDF diretamente, sem passar pela janela de impressão.
+ * Cada página do editor vira uma página A4; a opção de quantidade por página
+ * distribui mais de uma página por folha.
+ */
+const downloadPDF = async () => {
+  if (!pdfThumbnailsRef.value || downloading.value) return
+
+  const nodes = Array.from(pdfThumbnailsRef.value.querySelectorAll<HTMLElement>('.thumbnail'))
+  if (!nodes.length) return
+
+  downloading.value = true
+  try {
+    await document.fonts.ready
+
+    const { jsPDF } = await import('jspdf')
+    const isPortrait = viewportRatio.value >= 1
+    const pdf = new jsPDF({
+      orientation: isPortrait ? 'portrait' : 'landscape',
+      unit: 'mm',
+      format: 'a4',
+    })
+
+    const pageWidth = pdf.internal.pageSize.getWidth()
+    const pageHeight = pdf.internal.pageSize.getHeight()
+    const margin = padding.value ? 8 : 0
+    const maxWidth = pageWidth - margin * 2
+    const maxHeight = pageHeight - margin * 2
+    const perPage = Math.max(1, count.value)
+    const slotHeight = maxHeight / perPage
+    const slideRatio = 1 / viewportRatio.value
+
+    // imagens capturadas na resolução de renderização das miniaturas (1600 px)
+    const images: string[] = []
+    for (const node of nodes) {
+      const dataUrl = await toPng(node, {
+        pixelRatio: 2,
+        backgroundColor: '#fff',
+        cacheBust: true,
+      })
+      images.push(dataUrl)
+    }
+
+    for (let i = 0; i < images.length; i++) {
+      const pageIndex = Math.floor(i / perPage)
+      const slotIndex = i % perPage
+
+      if (pageIndex > 0 && slotIndex === 0) pdf.addPage()
+
+      let drawWidth = maxWidth
+      let drawHeight = drawWidth / slideRatio
+      if (drawHeight > slotHeight) {
+        drawHeight = slotHeight
+        drawWidth = drawHeight * slideRatio
+      }
+
+      const x = margin + (maxWidth - drawWidth) / 2
+      const y = margin + slotIndex * slotHeight + (slotHeight - drawHeight) / 2
+
+      pdf.addImage(images[i], 'PNG', x, y, drawWidth, drawHeight, undefined, 'FAST')
+    }
+
+    const fileName = (title.value || 'relatorio').replace(/[\\/:*?"<>|]/g, '-')
+    pdf.save(`${fileName}.pdf`)
+    message.success('PDF gerado com sucesso')
+  }
+  catch {
+    message.error('Falha ao gerar o PDF')
+  }
+  finally {
+    downloading.value = false
+  }
 }
 </script>
 
@@ -150,19 +231,24 @@ const expPDF = () => {
   }
 }
 .btns {
-  width: 300px;
+  width: 420px;
   height: 80px;
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1;
 
+  .btn + .btn {
+    margin-left: 8px;
+  }
   .export {
+    flex: 1.2;
+  }
+  .print {
     flex: 1;
   }
   .close {
-    width: 100px;
-    margin-left: 10px;
+    width: 80px;
   }
 }
 </style>

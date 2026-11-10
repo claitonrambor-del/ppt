@@ -22,7 +22,7 @@ export const AUTOSAVE_EVENT = 'autosave:saved'
 const persistNow = async () => {
   try {
     const slidesStore = useSlidesStore()
-    const { title, theme, slides, viewportSize, viewportRatio, slideIndex } = storeToRefs(slidesStore)
+    const { title, theme, slides, viewportSize, viewportRatio, slideIndex, header, sectors } = storeToRefs(slidesStore)
 
     if (!slides.value.length) return
 
@@ -33,6 +33,8 @@ const persistNow = async () => {
       viewportSize: viewportSize.value,
       viewportRatio: viewportRatio.value,
       slideIndex: slideIndex.value,
+      header: header.value,
+      sectors: sectors.value,
     })
 
     window.dispatchEvent(new CustomEvent(AUTOSAVE_EVENT))

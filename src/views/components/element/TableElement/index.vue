@@ -23,23 +23,25 @@
           :data="elementInfo.data"
           :width="elementInfo.width"
           :cellMinHeight="elementInfo.cellMinHeight"
+          :rowHeights="elementInfo.rowHeights"
           :colWidths="elementInfo.colWidths"
           :outline="elementInfo.outline"
           :theme="elementInfo.theme"
           :editable="editable"
           @change="data => updateTableCells(data)"
           @changeColWidths="widths => updateColWidths(widths)"
+          @changeRowHeights="heights => updateRowHeights(heights)"
           @changeSelectedCells="cells => updateSelectedCells(cells)"
         />
         <div 
           class="table-mask" 
-          :class="{ 'lock': elementInfo.lock }"
-          v-if="!editable || elementInfo.lock"
+          :class="{ 'lock': elementInfo.lock && !isModuleTable }"
+          v-if="!editable"
           @dblclick="startEdit()"
           @mousedown="$event => handleSelectElement($event)"
           @touchstart="$event => handleSelectElement($event)"
         >
-          <div class="mask-tip" v-if="handleElementId === elementInfo.id" :style="{ transform: `scale(${ 1 / canvasScale })` }">Duplo clique para editar</div>
+          <div class="mask-tip" v-if="handleElementId === elementInfo.id || isModuleTable" :style="{ transform: `scale(${ 1 / canvasScale })` }">Duplo clique para editar</div>
         </div>
       </div>
     </div>
@@ -47,12 +49,13 @@
 </template>
 
 <script lang="ts" setup>
-import { nextTick, onMounted, onUnmounted, ref, watch, useTemplateRef } from 'vue'
+import { nextTick, onMounted, onUnmounted, ref, watch, computed, useTemplateRef } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useMainStore, useSlidesStore } from '@/store'
 import type { PPTTableElement, TableCell } from '@/types/slides'
 import type { ContextmenuItem } from '@/components/Contextmenu/types'
 import useHistorySnapshot from '@/hooks/useHistorySnapshot'
+import { isModuleTableElement } from '@/utils/reportModule'
 
 import EditableTable from './EditableTable.vue'
 
@@ -69,6 +72,9 @@ const { canvasScale, handleElementId, isScaling } = storeToRefs(mainStore)
 const elementRef = useTemplateRef<HTMLElement>('elementRef')
 
 const { addHistorySnapshot } = useHistorySnapshot()
+
+// tabela de um módulo de vistoria (meia folha ou folha inteira), inserida pelo botão "Módulo"
+const isModuleTable = computed(() => isModuleTableElement(props.elementInfo))
 
 const handleSelectElement = (e: MouseEvent | TouchEvent) => {
   if (props.elementInfo.lock) return
@@ -89,7 +95,15 @@ watch(editable, () => {
 })
 
 const startEdit = () => {
-  if (!props.elementInfo.lock) editable.value = true
+  // tabela fixa comum: não edita. Módulo de vistoria: fixo (não move), mas edita
+  if (props.elementInfo.lock && !isModuleTable.value) return
+
+  if (props.elementInfo.lock) {
+    // módulo fixo: entra na seleção só para a edição funcionar e encerrar
+    // corretamente ao clicar fora (sem alças de mover: Operate respeita lock)
+    mainStore.setActiveElementIdList([props.elementInfo.id])
+  }
+  editable.value = true
 }
 
 // observa mudanças de tamanho da tabela; ao mudar a altura, atualiza no store
@@ -153,6 +167,15 @@ const updateColWidths = (widths: number[]) => {
   slidesStore.updateElement({
     id: props.elementInfo.id, 
     props: { width, colWidths },
+  })
+  addHistorySnapshot()
+}
+
+// atualizarTabela altura da linhadados (arraste das linhas no modo edição)
+const updateRowHeights = (heights: number[]) => {
+  slidesStore.updateElement({
+    id: props.elementInfo.id,
+    props: { rowHeights: heights },
   })
   addHistorySnapshot()
 }

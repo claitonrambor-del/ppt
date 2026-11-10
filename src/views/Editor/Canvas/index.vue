@@ -92,6 +92,9 @@
         <!-- régua móvel de medição: dentro da folha para escalar com o zoom -->
         <MeasureRuler v-if="showMeasureRuler" />
       </div>
+
+      <!-- setores do relatório: fora da folha e fora do conteúdo impresso -->
+      <SectorLabels />
     </div>
 
     <div class="drag-mask" v-if="spaceKeyState"></div>
@@ -148,6 +151,7 @@ import ElementFloatLayer from './ElementFloatLayer/index.vue'
 import AlignmentLine from './AlignmentLine.vue'
 import Ruler from './Ruler.vue'
 import MeasureRuler from './MeasureRuler.vue'
+import SectorLabels from './SectorLabels.vue'
 import ElementCreateSelection from './ElementCreateSelection.vue'
 import ShapeCreateCanvas from './ShapeCreateCanvas.vue'
 import MultiSelectOperate from './Operate/MultiSelectOperate.vue'

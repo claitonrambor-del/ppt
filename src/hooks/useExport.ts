@@ -24,7 +24,7 @@ interface ExportImageConfig {
 
 export default () => {
   const slidesStore = useSlidesStore()
-  const { slides, theme, viewportRatio, title, viewportSize } = storeToRefs(slidesStore)
+  const { slides, theme, viewportRatio, title, viewportSize, header } = storeToRefs(slidesStore)
 
   const defaultFontSize = 16
 
@@ -125,6 +125,7 @@ export default () => {
       width: viewportSize.value,
       height: viewportSize.value * viewportRatio.value,
       theme: theme.value,
+      header: header.value,
       slides: _slides,
     }
     const blob = new Blob([encrypt(JSON.stringify(json))], { type: '' })
@@ -138,6 +139,7 @@ export default () => {
       width: viewportSize.value,
       height: viewportSize.value * viewportRatio.value,
       theme: theme.value,
+      header: header.value,
       slides: slides.value,
     }
     const blob = new Blob([JSON.stringify(json)], { type: '' })
@@ -928,6 +930,8 @@ export default () => {
             w: el.width / ratioPx2Inch.value,
             h: el.height / ratioPx2Inch.value,
             colW: el.colWidths.map(item => el.width * item / ratioPx2Inch.value),
+            // alturas por linha, quando definidas
+            ...(el.rowHeights?.length ? { rowH: el.rowHeights.map(h => h / ratioPx2Inch.value) } : {}),
           }
           if (el.theme) options.fill = { color: '#ffffff' }
           if (el.outline.width && el.outline.color) {

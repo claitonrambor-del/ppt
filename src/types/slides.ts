@@ -576,6 +576,8 @@ export interface TableTheme {
  * 
  * cellMinHeight: célulamais Pequenoaltura
  * 
+ * rowHeights?: array opcional com a altura (px) de cada linha; ausente = todas as linhas usam cellMinHeight
+ * 
  * data: Tabeladados
  */
 export interface PPTTableElement extends PPTBaseElement {
@@ -584,6 +586,7 @@ export interface PPTTableElement extends PPTBaseElement {
   theme?: TableTheme
   colWidths: number[]
   cellMinHeight: number
+  rowHeights?: number[]
   data: TableCell[][]
 }
 
@@ -728,4 +731,45 @@ export interface SlideTemplate {
   id: string
   cover: string
   origin?: string
+}
+
+/**
+ * Campo de metadados do cabeçalho automático do documento
+ * (ex.: CLIENTE, ENDEREÇO, OP, Data da vistoria)
+ *
+ * id: ID estável do campo (key de renderização/edição)
+ *
+ * label: rótulo exibido antes do valor (ex.: "CLIENTE")
+ *
+ * value: valor do campo (ex.: "FM DIAS")
+ */
+export interface DocumentHeaderField {
+  id: string
+  label: string
+  value: string
+}
+
+/**
+ * Cabeçalho automático do documento — bloco repetido em todas as páginas.
+ *
+ * O conteúdo (logo, título e campos) vive neste estado e é sincronizado para
+ * os elementos `header:*` de cada slide. O layout (posição, tamanho, estilo)
+ * permanece 100% editável livremente no canvas.
+ *
+ * enabled: se true, o cabeçalho é injetado automaticamente em toda página nova/importada
+ *
+ * logoSrc: URL ou dataURL da imagem do logo
+ *
+ * logoRatio: proporção altura/largura do logo (preserva o aspecto na construção)
+ *
+ * title: título do relatório (ex.: "RELATÓRIO DE PENDÊNCIAS")
+ *
+ * fields: campos de metadados exibidos no bloco do cabeçalho
+ */
+export interface DocumentHeader {
+  enabled: boolean
+  logoSrc: string
+  logoRatio: number
+  title: string
+  fields: DocumentHeaderField[]
 }

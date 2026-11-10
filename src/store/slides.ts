@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { omit } from 'lodash'
-import type { Slide, SlideTheme, PPTElement, SlideTemplate } from '@/types/slides'
+import type { Slide, SlideTheme, PPTElement, SlideTemplate, DocumentHeader } from '@/types/slides'
+import { DEFAULT_HEADER, ensureHeaderInSlide } from '@/utils/header'
+import { ensureModuleInSlide } from '@/utils/reportModule'
 
 interface RemovePropData {
   id: string
@@ -21,6 +23,8 @@ export interface SlidesState {
   viewportSize: number
   viewportRatio: number
   templates: SlideTemplate[]
+  header: DocumentHeader
+  sectors: string[]
 }
 
 export const useSlidesStore = defineStore('slides', {
@@ -57,6 +61,8 @@ export const useSlidesStore = defineStore('slides', {
       { name: 'Profundo e Sério', id: 'template_7', cover: './imgs/template_7.webp', origin: 'Contribuição da comunidade + refinamento oficial' },
       { name: 'Azul Fresco', id: 'template_8', cover: './imgs/template_8.webp', origin: 'Contribuição da comunidade + refinamento oficial' },
     ], // Modelo
+    header: JSON.parse(JSON.stringify(DEFAULT_HEADER)), // Cabeçalho automático do documento
+    sectors: [], // Setores selecionados (exibidos apenas na edição, fora da folha)
   }),
 
   getters: {
@@ -75,6 +81,23 @@ export const useSlidesStore = defineStore('slides', {
     setTheme(themeProps: Partial<SlideTheme>) {
       this.theme = { ...this.theme, ...themeProps }
     },
+
+    /**
+     * Atualiza o cabeçalho automático do documento (conteúdo: logo, título,
+     * campos). O layout continua livre nos elementos `header:*` de cada slide;
+     * a sincronização do conteúdo para as páginas é feita por `useHeader`.
+     */
+    setHeader(headerProps: Partial<DocumentHeader>) {
+      this.header = { ...this.header, ...headerProps }
+    },
+
+    /**
+     * Define os setores do relatório. São apenas uma anotação de trabalho:
+     * aparecem fora da folha no editor e nunca entram na impressão/exportação.
+     */
+    setSectors(sectors: string[]) {
+      this.sectors = sectors
+    },
   
     setViewportSize(size: number) {
       this.viewportSize = size
@@ -85,7 +108,13 @@ export const useSlidesStore = defineStore('slides', {
     },
   
     setSlides(slides: Slide[], themeProps?: Partial<SlideTheme>) {
-      this.slides = slides
+      // injeta (ou mantém) o cabeçalho automático e normaliza os módulos de
+      // vistoria já existentes em todas as páginas recebidas
+      this.slides = slides.map(slide => ensureModuleInSlide(
+        ensureHeaderInSlide(slide, this.header, this.viewportSize, this.viewportRatio),
+        this.viewportSize,
+        this.viewportRatio,
+      ))
       if (themeProps) this.setTheme(themeProps)
     },
   
@@ -94,7 +123,12 @@ export const useSlidesStore = defineStore('slides', {
     },
   
     addSlide(slide: Slide | Slide[]) {
-      const slides = Array.isArray(slide) ? slide : [slide]
+      const slides = (Array.isArray(slide) ? slide : [slide])
+        .map(item => ensureModuleInSlide(
+          ensureHeaderInSlide(item, this.header, this.viewportSize, this.viewportRatio),
+          this.viewportSize,
+          this.viewportRatio,
+        ))
       for (const slide of slides) {
         if (slide.sectionTag) delete slide.sectionTag
       }

@@ -506,6 +506,10 @@ export default (
           return {
             ...el, left, top, width, height,
             cellMinHeight: cellMinHeight < 36 ? 36 : cellMinHeight,
+            // mantém as alturas por linha proporcionais ao novo tamanho
+            ...(el.rowHeights?.length
+              ? { rowHeights: el.rowHeights.map(h => h * height / elOriginHeight) }
+              : {}),
           }
         }
         return { ...el, left, top, width, height }

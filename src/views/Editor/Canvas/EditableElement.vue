@@ -23,6 +23,8 @@ import type { ContextmenuItem } from '@/components/Contextmenu/types'
 
 import useLockElement from '@/hooks/useLockElement'
 import useDeleteElement from '@/hooks/useDeleteElement'
+import useDeleteReportModule from '@/hooks/useDeleteReportModule'
+import { isModuleElement } from '@/utils/reportModule'
 import useCombineElement from '@/hooks/useCombineElement'
 import useOrderElement from '@/hooks/useOrderElement'
 import useAlignElementToCanvas from '@/hooks/useAlignElementToCanvas'
@@ -64,16 +66,31 @@ const { orderElement } = useOrderElement()
 const { alignElementToCanvas } = useAlignElementToCanvas()
 const { combineElements, uncombineElements } = useCombineElement()
 const { deleteElement } = useDeleteElement()
+const { deleteReportModule } = useDeleteReportModule()
 const { lockElement, unlockElement } = useLockElement()
 const { copyElement, pasteElement, cutElement } = useCopyAndPasteElement()
 const { selectAllElements } = useSelectElement()
 
 const contextmenus = (): ContextmenuItem[] => {
   if (props.elementInfo.lock) {
-    return [{
+    const menus: ContextmenuItem[] = [{
       text: 'Desfixar', 
       handler: () => unlockElement(props.elementInfo),
     }]
+
+    // módulo de vistoria (tabela + foto): exclui o bloco inteiro de uma vez
+    if (isModuleElement(props.elementInfo)) {
+      menus.push(
+        { divider: true },
+        {
+          text: 'Excluir módulo',
+          subText: 'Remove a tabela e o espaço da foto',
+          handler: () => deleteReportModule(props.elementInfo),
+        },
+      )
+    }
+
+    return menus
   }
 
   return [
@@ -153,6 +170,12 @@ const contextmenus = (): ContextmenuItem[] => {
       subText: 'Ctrl + L',
       handler: lockElement,
     },
+    // módulo de vistoria desfixado: exclui o bloco inteiro (tabela + foto)
+    ...(isModuleElement(props.elementInfo) ? [{
+      text: 'Excluir módulo',
+      subText: 'Remove a tabela e o espaço da foto',
+      handler: () => deleteReportModule(props.elementInfo),
+    }, { divider: true }] : []),
     {
       text: 'Excluir',
       subText: 'Delete',

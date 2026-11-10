@@ -32,7 +32,7 @@ export default defineConfig({
   ],
   server: {
     host: '127.0.0.1',
-    port: 3006,
+    port: 30008,
     proxy: {
       '/api': {
         target: 'https://server.pptist.cn',
